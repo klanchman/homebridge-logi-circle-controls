@@ -14,7 +14,7 @@ module.exports = function(homebridge) {
   UUIDGen = homebridge.hap.uuid
 
   homebridge.registerAccessory(
-    'homebridge-logi-circle-2-privacy',
+    'homebridge-logi-circle-privacy',
     accessoryName,
     LogiCirclePrivacyModeSwitch,
     true,
