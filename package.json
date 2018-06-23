@@ -1,0 +1,28 @@
+{
+  "name": "homebridge-logi-circle-2-privacy",
+  "version": "0.1.0",
+  "description": "Homebridge plugin for Logitech Circle 2 privacy mode toggle",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kyle Lanchman",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0"
+  },
+  "devDependencies": {
+    "prettier": "1.13.5"
+  },
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "engines": {
+    "homebridge": ">=0.4.42",
+    "node": ">=8.9.0"
+  },
+  "repository": "github:klanchman/homebridge-logi-circle-2-privacy"
+}
