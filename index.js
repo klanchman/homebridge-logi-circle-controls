@@ -3,6 +3,7 @@ const axios = require('axios').default
 const accessoryName = 'Logi Circle Privacy Mode Switch'
 const logiBaseUrl = 'https://video.logi.com/api/'
 const logiAuthHeader = 'x-logi-auth'
+const pkgVersion = require('./package.json').version
 
 let Accessory, Service, Characteristic, UUIDGen
 
@@ -43,7 +44,7 @@ class LogiCirclePrivacyModeSwitch {
         'Logi Circle Privacy Mode Switch',
       )
       .setCharacteristic(Characteristic.SerialNumber, 'None')
-      .setCharacteristic(Characteristic.FirmwareRevision, '0.1.0')
+      .setCharacteristic(Characteristic.FirmwareRevision, pkgVersion)
 
     this.axios = axios.create({
       baseURL: logiBaseUrl,
