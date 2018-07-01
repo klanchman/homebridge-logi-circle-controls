@@ -49,9 +49,8 @@ class LogiCirclePrivacyModeSwitch {
       baseURL: logiBaseUrl,
     })
 
-    this.axios.interceptors.response.use(
-      undefined,
-      this.unauthorizedRequestInterceptor,
+    this.axios.interceptors.response.use(undefined, err =>
+      this.unauthorizedRequestInterceptor(err),
     )
   }
 
@@ -94,6 +93,7 @@ class LogiCirclePrivacyModeSwitch {
 
       callback()
     } catch (error) {
+      this.logAxiosError(error)
       callback(error)
     }
   }
@@ -137,24 +137,29 @@ class LogiCirclePrivacyModeSwitch {
    * @param {any} error error intercepted from Axios
    */
   async unauthorizedRequestInterceptor(error) {
-    if (!error.config || !error.response || error.response.statusCode !== 401) {
-      if (error.config.__isAuthRetry) {
-        this.log('Request failed again after re-authentication')
-      }
+    if (
+      !error.response ||
+      error.response.status !== 401 ||
+      !error.response.config
+    ) {
+      return Promise.reject(error)
+    }
+
+    if (error.response.config.__isAuthRetry) {
+      this.log('Request failed again after re-authentication')
       return Promise.reject(error)
     }
 
     this.log('Received a 401, re-authenticating and trying again')
+    error.response.config.__isAuthRetry = true
+
     const authToken = await this.authenticate()
-    const newConfig = {
-      ...error.config,
-      __isAuthRetry: true,
-      headers: {
-        ...error.config.headers,
-        [logiAuthHeader]: authToken,
-      },
-    }
-    return this.axios.request(newConfig)
+
+    // This is necessary when debugging with a proxy, not sure otherwise
+    delete error.config.httpsAgent
+
+    error.config.headers[logiAuthHeader] = authToken
+    return this.axios.request(error.config)
   }
 
   /**
