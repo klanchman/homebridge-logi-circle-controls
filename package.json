@@ -1,7 +1,7 @@
 {
-  "name": "homebridge-logi-circle-privacy",
-  "version": "0.1.1",
-  "description": "Homebridge plugin for Logitech Circle camera privacy mode",
+  "name": "homebridge-logi-circle-controls",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for extended control of Logitech Circle cameras",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -24,5 +24,5 @@
     "homebridge": ">=0.4",
     "node": ">=8"
   },
-  "repository": "github:klanchman/homebridge-logi-circle-2-privacy"
+  "repository": "github:klanchman/homebridge-logi-circle-controls"
 }
