@@ -18,6 +18,5 @@ module.exports = function(homebridge) {
     'homebridge-logi-circle-controls',
     injectedInformation.packageInfo.platformName,
     LogiCircleControls,
-    true,
   )
 }
