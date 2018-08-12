@@ -5,18 +5,18 @@ module.exports = function(homebridge) {
     Characteristic: homebridge.hap.Characteristic,
     UUIDGen: homebridge.hap.uuid,
     packageInfo: {
-      accessoryName: 'Logi Circle Privacy Mode Switch',
+      platformName: 'Logi Circle Controls',
       version: require('./package.json').version,
     },
   }
 
-  const LogiCircleControls = require('./lib/LogiCircleControls')(
+  const LogiCircleControls = require('./lib/LogiCircleControlsPlatform')(
     injectedInformation,
   )
 
-  homebridge.registerAccessory(
+  homebridge.registerPlatform(
     'homebridge-logi-circle-controls',
-    injectedInformation.packageInfo.accessoryName,
+    injectedInformation.packageInfo.platformName,
     LogiCircleControls,
     true,
   )
