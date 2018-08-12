@@ -7,7 +7,7 @@ This is a Homebridge plugin that exposes extended controls for Logitech Circle c
 Tested with Node v8.9 and Homebridge v0.4.42.
 
 ```
-npm i -g homebridge-logi-circle-privacy
+npm i -g homebridge-logi-circle-controls
 ```
 
 ## Configuration
