@@ -13,7 +13,7 @@ npm i -g homebridge-logi-circle-privacy
 ## Configuration
 
 In your Homebridge config.json file, add a new entry in `platforms` that looks like this:
-```json
+```jsonc
 {
     "platform": "Logi Circle Controls",
     "name": "<the desired name for the platform (mostly affects Homebridge logs)>",
@@ -34,7 +34,7 @@ Currently, the available accessories are:
 
 If you wanted all available accessories to appear in your Home, the configuration would look like this:
 
-```json
+```jsonc
 "accessories": [{
     "type": "privacyMode",
     "name": "<the desired name for privacy mode switch>"
