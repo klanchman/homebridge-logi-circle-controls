@@ -25,10 +25,10 @@ In your Homebridge config.json file, add a new entry in `platforms` that looks l
 ```jsonc
 {
   "platform": "Logi Circle Controls",
-  "name": "<the desired name for the platform (mostly affects Homebridge logs)>",
-  "email": "<the email for your Logitech Circle account>",
-  "password": "<the password for your Logitech Circle account>",
-  "accessories": [] /* See "Accessories" subsection */
+  "name": "<Optional: the desired name for the platform (mostly affects Homebridge logs) | Default: 'Logi Circle Controls'>",
+  "email": "<Required: the email for your Logitech Circle account>",
+  "password": "<Required: the password for your Logitech Circle account>",
+  "accessories": [] /* Required, see "Accessories" section */
 }
 ```
 
@@ -40,9 +40,20 @@ An accessory config object looks like this:
 
 ```jsonc
 {
+  "deviceId": "<Required: The ID of your camera>",
   "name": "<Optional: The desired name for the camera | Default: Logi Circle>",
-  "deviceId": "<The ID of your camera>"
+  /* Each of the below objects is optional */
+  "privacyMode": {
+    "name": "<Optional: the desired name of the privacy mode switch | Default: 'Privacy Mode'>",
+    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  },
+  "streamingMode": {
+    "name": "<Optional: the desired name of the streaming mode switch | Default: 'Streaming Mode'>"
+    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  },
+  "ledPower": {
+    "name": "<Optional: the desired name of the LED power switch | Default: 'LED Power'>"
+    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  }
 }
 ```
-
-Each camera has a privacy mode, LED power, and streaming mode switch.
