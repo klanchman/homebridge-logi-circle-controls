@@ -25,53 +25,35 @@ In your Homebridge config.json file, add a new entry in `platforms` that looks l
 ```jsonc
 {
   "platform": "Logi Circle Controls",
-  "name": "<the desired name for the platform (mostly affects Homebridge logs)>",
-  "email": "<the email for your Logitech Circle account>",
-  "password": "<the password for your Logitech Circle account>",
-  "defaultDeviceId": "<Optional: the ID of your camera (useful if you only have 1 device)>",
-  "accessories": [] /* See "Accessories" subsection */
+  "name": "<Optional: the desired name for the platform (mostly affects Homebridge logs) | Default: 'Logi Circle Controls'>",
+  "email": "<Required: the email for your Logitech Circle account>",
+  "password": "<Required: the password for your Logitech Circle account>",
+  "accessories": [] /* Required, see "Accessories" section */
 }
 ```
 
 ### Accessories
 
-In the above configuration, `accessories` is an array of accessories for this platform to control.
-
-Currently, the available accessories are:
-
-- Privacy mode switch (`type: privacyMode`)
-- Camera on/off switch (`type: streamingMode`)
-- LED on/off switch (`type: ledPower`)
+In the above configuration, `accessories` is an array of cameras for this platform to control.
 
 An accessory config object looks like this:
 
 ```jsonc
 {
-  "type": "<an accessory type>",
-  "name": "<the desired name for privacy mode switch (appears in the Home app)>",
-  "deviceId": "<Optional: the ID of your camera. If not specified, uses `defaultDeviceId` from platform config>"
+  "deviceId": "<Required: The ID of your camera>",
+  "name": "<Optional: The desired name for the camera | Default: Logi Circle>",
+  /* Each of the below objects is optional */
+  "privacyMode": {
+    "name": "<Optional: the desired name of the privacy mode switch | Default: 'Privacy Mode'>",
+    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  },
+  "streamingMode": {
+    "name": "<Optional: the desired name of the streaming mode switch | Default: 'Streaming Mode'>"
+    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  },
+  "ledPower": {
+    "name": "<Optional: the desired name of the LED power switch | Default: 'LED Power'>"
+    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  }
 }
 ```
-
-An example configuration for all available accessory that uses a `defaultDeviceId` might look like this:
-
-```jsonc
-{
-  "accessories": [
-    {
-      "type": "privacyMode",
-      "name": "Privacy Mode"
-    },
-    {
-      "type": "streamingMode",
-      "name": "Steaming Mode"
-    },
-    {
-      "type": "ledPower",
-      "name": "LED Power"
-    }
-  ]
-}
-```
-
-Of course, you can exclude any accessories that you do not want to have displayed in your Home.
