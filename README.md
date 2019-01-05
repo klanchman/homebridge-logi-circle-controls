@@ -16,7 +16,7 @@ You'll need to know the ID of your device(s) to configure this plugin.
 
 Log into the web interface at https://circle.logi.com.
 
-Once logged in and viewing a camera, the URL should be along the lines of `https://circle.logi.com/#/accessories/<ID>`. The ID in the URL is the device ID required in the config objects above.
+Once logged in and viewing a camera, the URL should be along the lines of `https://circle.logi.com/#/accessories/<ID>`. The ID in the URL is the device ID required in the config objects below.
 
 ## Configuration
 
@@ -57,3 +57,17 @@ An accessory config object looks like this:
   }
 }
 ```
+
+#### `privacyMode` Switch
+
+Controls recording. When the switch is on, recording is disabled. When the switch is off, recording is enabled.
+
+#### `streamingMode` Switch
+
+Controls the camera's on/off state. When the switch is on, the camera is on. When the switch is off, the camera is off.
+
+Please note that it seems Logitech does not _actually_ prevent the camera from being viewed when this switch is off, at least via HomeKit. Refer to [issue #8](https://github.com/klanchman/homebridge-logi-circle-controls/issues/8).
+
+#### `ledPower` Switch
+
+Controls the LED ring power. When the switch is off, the LED ring is off. When the switch is on, the LED ring is on.
