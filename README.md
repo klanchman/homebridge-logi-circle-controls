@@ -66,8 +66,6 @@ Controls recording. When the switch is on, recording is disabled. When the switc
 
 Controls the camera's on/off state. When the switch is on, the camera is on. When the switch is off, the camera is off.
 
-Please note that it seems Logitech does not _actually_ prevent the camera from being viewed when this switch is off, at least via HomeKit. Refer to [issue #8](https://github.com/klanchman/homebridge-logi-circle-controls/issues/8).
-
 #### `ledPower` Switch
 
 Controls the LED ring power. When the switch is off, the LED ring is off. When the switch is on, the LED ring is on.
