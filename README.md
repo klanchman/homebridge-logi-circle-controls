@@ -42,30 +42,46 @@ An accessory config object looks like this:
 {
   "deviceId": "<Required: The ID of your camera>",
   "name": "<Optional: The desired name for the camera | Default: Logi Circle>",
+
   /* Each of the below objects is optional */
+
+  "camera": {
+    "name": "<Optional: the desired name of the camera switch | Default: 'Camera'>"
+    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  },
+  "led": {
+    "name": "<Optional: the desired name of the LED switch | Default: 'LED'>"
+    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  },
   "privacyMode": {
     "name": "<Optional: the desired name of the privacy mode switch | Default: 'Privacy Mode'>",
     "disabled": false /* Optional: set to true to disable this switch | Default: false */
   },
-  "streamingMode": {
-    "name": "<Optional: the desired name of the streaming mode switch | Default: 'Streaming Mode'>"
-    "disabled": false /* Optional: set to true to disable this switch | Default: false */
+  "recording": {
+    "name": "<Optional: the desired name of the recording switch | Default: 'Recording'>",
+    "disabled": true /* Optional: set to true to disable this switch | Default: true */
   },
-  "ledPower": {
-    "name": "<Optional: the desired name of the LED power switch | Default: 'LED Power'>"
-    "disabled": false /* Optional: set to true to disable this switch | Default: false */
-  }
 }
 ```
+
+#### `camera` Switch
+
+Controls the camera's on/off state. When the switch is on, the camera is on. When the switch is off, the camera is off.
+
+#### `led` Switch
+
+Controls the LED ring power. When the switch is off, the LED ring is off. When the switch is on, the LED ring is on.
 
 #### `privacyMode` Switch
 
 Controls recording. When the switch is on, recording is disabled. When the switch is off, recording is enabled.
 
-#### `streamingMode` Switch
+##### Deprecated
 
-Controls the camera's on/off state. When the switch is on, the camera is on. When the switch is off, the camera is off.
+This switch is deprecated and will be removed in a future version.
 
-#### `ledPower` Switch
+It is recommended to disable this switch and the `recording` switch instead.
 
-Controls the LED ring power. When the switch is off, the LED ring is off. When the switch is on, the LED ring is on.
+#### `recording` Switch
+
+Controls recording. When the switch is on, recording is enabled. When the switch is off, recording is disabled.
