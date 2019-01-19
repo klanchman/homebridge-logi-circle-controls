@@ -46,11 +46,11 @@ An accessory config object looks like this:
   /* Each of the below objects is optional */
 
   "camera": {
-    "name": "<Optional: the desired name of the camera switch | Default: 'Camera'>"
+    "name": "<Optional: the desired name of the camera switch | Default: 'Camera'>",
     "disabled": false /* Optional: set to true to disable this switch | Default: false */
   },
   "led": {
-    "name": "<Optional: the desired name of the LED switch | Default: 'LED'>"
+    "name": "<Optional: the desired name of the LED switch | Default: 'LED'>",
     "disabled": false /* Optional: set to true to disable this switch | Default: false */
   },
   "privacyMode": {
@@ -61,6 +61,14 @@ An accessory config object looks like this:
     "name": "<Optional: the desired name of the recording switch | Default: 'Recording'>",
     "disabled": true /* Optional: set to true to disable this switch | Default: true */
   },
+  "nightVisionMode": {
+    "name": "<Optional: the desired name of the night vision mode switch | Default: 'Night Vision'>",
+    "disabled": true /* Optional: set to true to disable this switch | Default: true */
+  },
+  "nightVisionIR": {
+    "name": "<Optional: the desired name of the night vision IR switch | Default: 'Night IR'>",
+    "disabled": true /* Optional: set to true to disable this switch | Default: true */
+  }
 }
 ```
 
@@ -85,3 +93,13 @@ It is recommended to disable this switch and the `recording` switch instead.
 #### `recording` Switch
 
 Controls recording. When the switch is on, recording is enabled. When the switch is off, recording is disabled.
+
+#### `nightVisionMode` Switch
+
+Controls night vision mode. When the switch is on, the camera will automatically switch into night vision mode when it's dark.
+When the switch is off, night vision is disabled.
+
+#### `nightVisionIR` Switch
+
+Controls night vision IR LEDs. When the switch is on, the camera will use the IR LEDs when in night vision mode.
+When the switch is off, night vision IR LEDs are disabled.
