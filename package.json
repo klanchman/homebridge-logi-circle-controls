@@ -1,6 +1,6 @@
 {
   "name": "homebridge-logi-circle-controls",
-  "version": "2.1.0-beta.1",
+  "version": "2.1.0-beta.2",
   "description": "Homebridge plugin for extended control of Logitech Circle cameras",
   "main": "index.js",
   "directories": {
