@@ -13,8 +13,8 @@
   "author": "Kyle Lanchman",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.18.0",
-    "yup": "^0.26.6"
+    "axios": "^0.18.1",
+    "yup": "^0.26.10"
   },
   "devDependencies": {
     "prettier": "^1.14.2"
