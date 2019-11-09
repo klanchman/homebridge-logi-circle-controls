@@ -1,0 +1,4 @@
+lib
+.prettierrc
+tsconfig.json
+*.tgz
