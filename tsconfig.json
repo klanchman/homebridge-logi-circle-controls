@@ -2,7 +2,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "allowJs": true,
-    "target": "es2017"
+    "target": "es2017",
+
+    "noEmitOnError": true,
+    "strict": true
   },
   "include": ["./src/**/*"]
 }
