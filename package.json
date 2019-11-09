@@ -13,11 +13,13 @@
   "author": "Kyle Lanchman",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.18.1",
+    "got": "^9.6.0",
     "yup": "^0.26.10"
   },
   "devDependencies": {
-    "prettier": "^1.14.2"
+    "@types/yup": "^0.26.24",
+    "prettier": "^1.19.1",
+    "typescript": "^3.7.2"
   },
   "keywords": [
     "homebridge-plugin"
