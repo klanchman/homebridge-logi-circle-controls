@@ -3,6 +3,13 @@
     "outDir": "./dist",
     "allowJs": true,
     "target": "es2017",
+    "types": ["reflect-metadata"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
 
     "noEmitOnError": true,
     "strict": true

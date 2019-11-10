@@ -1,6 +1,5 @@
-module.exports = function(homebridge) {
+export default (homebridge: Homebridge.API) => {
   const injectedInformation = {
-    Accessory: homebridge.platformAccessory,
     Service: homebridge.hap.Service,
     Characteristic: homebridge.hap.Characteristic,
     UUIDGen: homebridge.hap.uuid,

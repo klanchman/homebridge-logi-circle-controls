@@ -3,23 +3,25 @@
   "version": "2.1.2",
   "description": "Homebridge plugin for extended control of Logitech Circle cameras",
   "main": "./dist/index.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "yarn clean && tsc",
+    "clean": "rm -rf dist/",
+    "prepack": "yarn build",
     "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,ts}\"",
-    "build": "tsc"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kyle Lanchman",
   "license": "MIT",
   "dependencies": {
     "got": "^9.6.0",
+    "inversify": "^5.0.1",
+    "reflect-metadata": "^0.1.13",
     "yup": "^0.26.10"
   },
   "devDependencies": {
     "@types/node": "^10",
     "@types/yup": "^0.26.24",
+    "hap-nodejs": "^0.5.3",
     "prettier": "^1.19.1",
     "typescript": "^3.7.2"
   },
@@ -30,5 +32,5 @@
     "homebridge": ">=0.4",
     "node": ">=10"
   },
-  "repository": "github:klanchman/homebridge-logi-circle-controls"
+  "repository": "https://github.com/klanchman/homebridge-logi-circle-controls"
 }

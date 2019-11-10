@@ -1,4 +1,5 @@
-src
-.prettierrc
-tsconfig.json
 *.tgz
+.prettierrc
+.vscode
+src
+tsconfig.json
