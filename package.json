@@ -14,8 +14,6 @@
   "license": "MIT",
   "dependencies": {
     "got": "^9.6.0",
-    "inversify": "^5.0.1",
-    "reflect-metadata": "^0.1.13",
     "yup": "^0.26.10"
   },
   "devDependencies": {
