@@ -25,5 +25,17 @@ declare namespace Homebridge {
     log(level: string, ...args: any[]): void
   }
 
-  type PlatformConstructor = new (logger: Logger, config: any, api: API) => void
+  type PlatformConstructor = new (
+    logger: Logger,
+    config: any,
+    api: API,
+  ) => Platform
+
+  interface Platform {
+    accessories(callback: (accessories: Accessory[]) => void): void
+  }
+
+  interface Accessory {
+    getServices(): import('hap-nodejs').Service[]
+  }
 }

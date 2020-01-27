@@ -1,31 +1,35 @@
+import { Service } from 'hap-nodejs'
+import { AccessoryInformation } from 'hap-nodejs/dist/lib/gen/HomeKit'
+import LogiService from '../LogiService'
+import { AccessoryConfig } from '../utils/Config'
+import { HomebridgeAPI } from '../utils/HomebridgeAPI'
+import { Logger } from '../utils/Logger'
+import { PackageInfo } from '../utils/PackageInfo'
+import { BaseSwitch } from './BaseSwitch'
+
 const CameraSwitch = require('./CameraSwitch')
 const LEDSwitch = require('./LEDSwitch')
 const NightVisionIRSwitch = require('./NightVisionIRSwitch')
 const NightVisionModeSwitch = require('./NightVisionModeSwitch')
-const PrivacyModeSwitch = require('./PrivacyModeSwitch')
 const RecordingSwitch = require('./RecordingSwitch')
 
-class Camera {
-  constructor({
-    config,
-    logiService,
-    log,
-    packageInfo,
-    Service,
-    Characteristic,
-  }) {
-    this.logiService = logiService
-    this._log = log
+export class Camera {
+  private informationService: AccessoryInformation
+  private switches: BaseSwitch[]
+
+  constructor(config: AccessoryConfig, private logiService: LogiService) {
     this.switches = []
 
-    this.informationService = new Service.AccessoryInformation()
+    const Characteristic = HomebridgeAPI.shared.Characteristic
+
+    const f = new Service.AccessoryInformation(config.name, '')
+
+    this.informationService = new Service.AccessoryInformation(config.name, '')
     this.informationService
       .setCharacteristic(Characteristic.Manufacturer, 'Kyle Lanchman')
-      .setCharacteristic(Characteristic.Model, packageInfo.platformName)
+      .setCharacteristic(Characteristic.Model, PackageInfo.platformName)
       .setCharacteristic(Characteristic.SerialNumber, 'None')
-      .setCharacteristic(Characteristic.FirmwareRevision, packageInfo.version)
-
-    this.name = config.name
+      .setCharacteristic(Characteristic.FirmwareRevision, PackageInfo.version)
 
     if (!config.camera.disabled) {
       this.switches.push(
@@ -37,7 +41,7 @@ class Camera {
           Service,
           Characteristic,
           logiService: this.logiService,
-          log: this._log,
+          log: Logger.shared,
         }),
       )
     }
@@ -52,22 +56,7 @@ class Camera {
           Service,
           Characteristic,
           logiService: this.logiService,
-          log: this._log,
-        }),
-      )
-    }
-
-    if (!config.privacyMode.disabled) {
-      this.switches.push(
-        new PrivacyModeSwitch({
-          switchConfig: {
-            name: config.privacyMode.name,
-            deviceId: config.deviceId,
-          },
-          Service,
-          Characteristic,
-          logiService: this.logiService,
-          log: this._log,
+          log: Logger.shared,
         }),
       )
     }
@@ -82,7 +71,7 @@ class Camera {
           Service,
           Characteristic,
           logiService: this.logiService,
-          log: this._log,
+          log: Logger.shared,
         }),
       )
     }
@@ -97,7 +86,7 @@ class Camera {
           Service,
           Characteristic,
           logiService: this.logiService,
-          log: this._log,
+          log: Logger.shared,
         }),
       )
     }
@@ -112,7 +101,7 @@ class Camera {
           Service,
           Characteristic,
           logiService: this.logiService,
-          log: this._log,
+          log: Logger.shared,
         }),
       )
     }
@@ -122,5 +111,3 @@ class Camera {
     return [this.informationService, ...this.switches.map(s => s.switchService)]
   }
 }
-
-module.exports = Camera

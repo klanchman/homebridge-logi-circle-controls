@@ -1,21 +1,13 @@
-export default (homebridge: Homebridge.API) => {
-  const injectedInformation = {
-    Service: homebridge.hap.Service,
-    Characteristic: homebridge.hap.Characteristic,
-    UUIDGen: homebridge.hap.uuid,
-    packageInfo: {
-      platformName: 'Logi Circle Controls',
-      version: require('../package.json').version,
-    },
-  }
+import { LogiCircleControlsPlatform } from './LogiCircleControlsPlatform'
+import { HomebridgeAPI } from './utils/HomebridgeAPI'
+import { PackageInfo } from './utils/PackageInfo'
 
-  const LogiCircleControls = require('./LogiCircleControlsPlatform')(
-    injectedInformation,
-  )
+export default (homebridge: Homebridge.API) => {
+  HomebridgeAPI.configure(homebridge)
 
   homebridge.registerPlatform(
     'homebridge-logi-circle-controls',
-    injectedInformation.packageInfo.platformName,
-    LogiCircleControls,
+    PackageInfo.platformName,
+    LogiCircleControlsPlatform,
   )
 }

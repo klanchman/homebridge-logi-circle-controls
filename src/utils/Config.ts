@@ -39,3 +39,6 @@ const configSchema = object({
 export const parseConfig = async (config: unknown) => {
   return configSchema.validate(config)
 }
+
+export type Config = ReturnType<typeof configSchema['validateSync']>
+export type AccessoryConfig = Config['accessories'][number]
