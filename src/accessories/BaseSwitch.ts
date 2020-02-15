@@ -14,9 +14,9 @@ export class BaseSwitch {
   private subtype: string
 
   constructor(
-    private switchConfig: SwitchConfig,
-    private apiPropName: string,
-    private logiService: LogiService,
+    protected switchConfig: SwitchConfig,
+    protected apiPropName: string,
+    protected logiService: LogiService,
     subtype?: string,
   ) {
     this.subtype = subtype || apiPropName

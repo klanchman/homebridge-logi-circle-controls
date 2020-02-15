@@ -1,15 +1,16 @@
-const BaseSwitch = require('./BaseSwitch')
+import { NodeCallback } from '../utils/types'
+import { BaseSwitch, SwitchConfig } from './BaseSwitch'
+import LogiService = require('../LogiService')
 
-class CameraSwitch extends BaseSwitch {
-  constructor(attrs) {
-    super({ ...attrs, apiPropName: 'streamingMode', subtype: 'camera' })
+export class CameraSwitch extends BaseSwitch {
+  constructor(switchConfig: SwitchConfig, logiService: LogiService) {
+    super(switchConfig, 'streamingMode', logiService, 'camera')
   }
 
   /**
    * Gets the state of the switch
-   * @param {function} callback Node callback, takes Error? and Boolean?
    */
-  async getState(callback) {
+  getState = async (callback: NodeCallback<boolean>) => {
     try {
       const response = await this.logiService.request(
         'get',
@@ -25,10 +26,8 @@ class CameraSwitch extends BaseSwitch {
 
   /**
    * Sets the switch state
-   * @param {boolean} nextState The desired switch state
-   * @param {function} callback Node callback, takes Error?
    */
-  async setState(nextState, callback) {
+  setState = async (nextState: boolean, callback: NodeCallback<never>) => {
     try {
       await this.logiService.request(
         'put',
@@ -44,5 +43,3 @@ class CameraSwitch extends BaseSwitch {
     }
   }
 }
-
-module.exports = CameraSwitch

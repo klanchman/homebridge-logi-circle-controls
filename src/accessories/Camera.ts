@@ -6,8 +6,8 @@ import { HomebridgeAPI } from '../utils/HomebridgeAPI'
 import { Logger } from '../utils/Logger'
 import { PackageInfo } from '../utils/PackageInfo'
 import { BaseSwitch } from './BaseSwitch'
+import { CameraSwitch } from './CameraSwitch'
 
-const CameraSwitch = require('./CameraSwitch')
 const LEDSwitch = require('./LEDSwitch')
 const NightVisionIRSwitch = require('./NightVisionIRSwitch')
 const NightVisionModeSwitch = require('./NightVisionModeSwitch')
@@ -33,16 +33,13 @@ export class Camera {
 
     if (!config.camera.disabled) {
       this.switches.push(
-        new CameraSwitch({
-          switchConfig: {
+        new CameraSwitch(
+          {
             name: config.camera.name,
             deviceId: config.deviceId,
           },
-          Service,
-          Characteristic,
-          logiService: this.logiService,
-          log: Logger.shared,
-        }),
+          this.logiService,
+        ),
       )
     }
 
