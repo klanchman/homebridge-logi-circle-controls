@@ -7,9 +7,9 @@ import { Logger } from '../utils/Logger'
 import { PackageInfo } from '../utils/PackageInfo'
 import { BaseSwitch } from './BaseSwitch'
 import { CameraSwitch } from './CameraSwitch'
+import { LEDSwitch } from './LEDSwitch'
+import { NightVisionIRSwitch } from './NightVisionIRSwitch'
 
-const LEDSwitch = require('./LEDSwitch')
-const NightVisionIRSwitch = require('./NightVisionIRSwitch')
 const NightVisionModeSwitch = require('./NightVisionModeSwitch')
 const RecordingSwitch = require('./RecordingSwitch')
 
@@ -45,16 +45,13 @@ export class Camera {
 
     if (!config.led.disabled) {
       this.switches.push(
-        new LEDSwitch({
-          switchConfig: {
+        new LEDSwitch(
+          {
             name: config.led.name,
             deviceId: config.deviceId,
           },
-          Service,
-          Characteristic,
-          logiService: this.logiService,
-          log: Logger.shared,
-        }),
+          this.logiService,
+        ),
       )
     }
 
@@ -90,16 +87,13 @@ export class Camera {
 
     if (!config.nightVisionIR.disabled) {
       this.switches.push(
-        new NightVisionIRSwitch({
-          switchConfig: {
+        new NightVisionIRSwitch(
+          {
             name: config.nightVisionIR.name,
             deviceId: config.deviceId,
           },
-          Service,
-          Characteristic,
-          logiService: this.logiService,
-          log: Logger.shared,
-        }),
+          this.logiService,
+        ),
       )
     }
   }
