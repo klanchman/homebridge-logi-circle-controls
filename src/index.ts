@@ -1,12 +1,10 @@
+import type { API } from 'homebridge'
 import { LogiCircleControlsPlatform } from './LogiCircleControlsPlatform'
-import { HomebridgeAPI } from './utils/HomebridgeAPI'
 import { PackageInfo } from './utils/PackageInfo'
 
-export default (homebridge: Homebridge.API) => {
-  HomebridgeAPI.configure(homebridge)
-
-  homebridge.registerPlatform(
-    'homebridge-logi-circle-controls',
+export default (api: API) => {
+  api.registerPlatform(
+    PackageInfo.identifier,
     PackageInfo.platformName,
     LogiCircleControlsPlatform,
   )

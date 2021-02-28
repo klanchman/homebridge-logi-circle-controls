@@ -1,29 +1,30 @@
-import { Service } from 'hap-nodejs'
-import { AccessoryInformation } from 'hap-nodejs/dist/lib/gen/HomeKit'
+import type { AccessoryPlugin, API, Logging } from 'homebridge'
 import LogiService from '../LogiService'
 import { AccessoryConfig } from '../utils/Config'
-import { HomebridgeAPI } from '../utils/HomebridgeAPI'
-import { Logger } from '../utils/Logger'
 import { PackageInfo } from '../utils/PackageInfo'
 import { BaseSwitch } from './BaseSwitch'
 import { CameraSwitch } from './CameraSwitch'
 import { LEDSwitch } from './LEDSwitch'
 import { NightVisionIRSwitch } from './NightVisionIRSwitch'
+import { RecordingSwitch } from './RecordingSwitch'
 
-const NightVisionModeSwitch = require('./NightVisionModeSwitch')
-const RecordingSwitch = require('./RecordingSwitch')
+export class Camera implements AccessoryPlugin {
+  name: string
 
-export class Camera {
-  private informationService: AccessoryInformation
+  private informationService
   private switches: BaseSwitch[]
 
-  constructor(config: AccessoryConfig, private logiService: LogiService) {
+  constructor(
+    private readonly api: API,
+    private readonly log: Logging,
+    config: AccessoryConfig,
+    private logiService: LogiService,
+  ) {
     this.switches = []
 
-    const Characteristic = HomebridgeAPI.shared.Characteristic
+    const { Characteristic, Service } = api.hap
 
-    const f = new Service.AccessoryInformation(config.name, '')
-
+    this.name = config.name
     this.informationService = new Service.AccessoryInformation(config.name, '')
     this.informationService
       .setCharacteristic(Characteristic.Manufacturer, 'Kyle Lanchman')
@@ -34,6 +35,8 @@ export class Camera {
     if (!config.camera.disabled) {
       this.switches.push(
         new CameraSwitch(
+          this.api,
+          this.log,
           {
             name: config.camera.name,
             deviceId: config.deviceId,
@@ -46,6 +49,8 @@ export class Camera {
     if (!config.led.disabled) {
       this.switches.push(
         new LEDSwitch(
+          this.api,
+          this.log,
           {
             name: config.led.name,
             deviceId: config.deviceId,
@@ -57,37 +62,37 @@ export class Camera {
 
     if (!config.recording.disabled) {
       this.switches.push(
-        new RecordingSwitch({
-          switchConfig: {
+        new RecordingSwitch(
+          this.api,
+          this.log,
+          {
             name: config.recording.name,
             deviceId: config.deviceId,
           },
-          Service,
-          Characteristic,
-          logiService: this.logiService,
-          log: Logger.shared,
-        }),
+          this.logiService,
+        ),
       )
     }
 
     if (!config.nightVisionMode.disabled) {
       this.switches.push(
-        new NightVisionModeSwitch({
-          switchConfig: {
+        new NightVisionIRSwitch(
+          this.api,
+          this.log,
+          {
             name: config.nightVisionMode.name,
             deviceId: config.deviceId,
           },
-          Service,
-          Characteristic,
-          logiService: this.logiService,
-          log: Logger.shared,
-        }),
+          this.logiService,
+        ),
       )
     }
 
     if (!config.nightVisionIR.disabled) {
       this.switches.push(
         new NightVisionIRSwitch(
+          this.api,
+          this.log,
           {
             name: config.nightVisionIR.name,
             deviceId: config.deviceId,

@@ -1,7 +1,13 @@
-import { Switch } from 'hap-nodejs/dist/lib/gen/HomeKit'
+import type {
+  API,
+  CharacteristicGetCallback,
+  CharacteristicSetCallback,
+  CharacteristicValue,
+  Logging,
+  Service,
+} from 'homebridge'
+import { CharacteristicEventTypes } from 'homebridge'
 import LogiService from '../LogiService'
-import { HomebridgeAPI } from '../utils/HomebridgeAPI'
-import { NodeCallback } from '../utils/types'
 
 export interface SwitchConfig {
   deviceId: string
@@ -9,11 +15,13 @@ export interface SwitchConfig {
 }
 
 export class BaseSwitch {
-  switchService: Switch
+  switchService: Service
 
   private subtype: string
 
   constructor(
+    protected readonly api: API,
+    protected readonly log: Logging,
     protected switchConfig: SwitchConfig,
     protected apiPropName: string,
     protected logiService: LogiService,
@@ -21,24 +29,23 @@ export class BaseSwitch {
   ) {
     this.subtype = subtype || apiPropName
 
-    const { Characteristic, Service } = HomebridgeAPI.shared
+    const { Characteristic, Service } = api.hap
 
     this.switchService = new Service.Switch(
       this.switchConfig.name,
       this.subtype,
     )
 
-    // FIXME: How to avoid the `as any`?
     this.switchService
-      .getCharacteristic(Characteristic.On)!
-      .on('get' as any, this.getState)
-      .on('set' as any, this.setState as any)
+      .getCharacteristic(Characteristic.On)
+      .on(CharacteristicEventTypes.GET, this.getState.bind(this))
+      .on(CharacteristicEventTypes.SET, this.setState.bind(this))
   }
 
   /**
    * Gets the state of the switch
    */
-  getState = async (callback: NodeCallback<boolean>) => {
+  async getState(callback: CharacteristicGetCallback) {
     try {
       const response = await this.logiService.request(
         'get',
@@ -55,7 +62,10 @@ export class BaseSwitch {
   /**
    * Sets the switch state
    */
-  setState = async (nextState: boolean, callback: NodeCallback<never>) => {
+  async setState(
+    nextState: CharacteristicValue,
+    callback: CharacteristicSetCallback,
+  ) {
     try {
       await this.logiService.request(
         'put',
