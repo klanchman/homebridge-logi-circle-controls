@@ -29,7 +29,7 @@ const configSchema = object({
       }),
     }),
   ).required(),
-})
+}).required()
 
 /**
  * Parses accessory configuration, returning a Promise that resolves to
