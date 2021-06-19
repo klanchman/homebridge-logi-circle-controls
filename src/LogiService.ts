@@ -29,7 +29,8 @@ export class LogiService {
     this.axios = axios.create({
       baseURL: LogiService.logiBaseUrl,
       headers: {
-        'user-agent': `homebridge-logi-circle-controls/${PackageInfo.version}`,
+        'user-agent': 'iOSClient/3.4.5.31',
+        'x-actual-user-agent': `homebridge-logi-circle-controls/${PackageInfo.version}`,
       },
     })
 
