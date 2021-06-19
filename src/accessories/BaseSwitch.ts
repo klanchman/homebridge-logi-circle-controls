@@ -7,7 +7,7 @@ import type {
   Service,
 } from 'homebridge'
 import { CharacteristicEventTypes } from 'homebridge'
-import LogiService from '../LogiService'
+import { LogiService } from '../LogiService'
 
 export interface SwitchConfig {
   deviceId: string

@@ -5,8 +5,8 @@ import type {
   CharacteristicValue,
   Logging,
 } from 'homebridge'
+import { LogiService } from '../LogiService'
 import { BaseSwitch, SwitchConfig } from './BaseSwitch'
-import LogiService = require('../LogiService')
 
 export class CameraSwitch extends BaseSwitch {
   constructor(

@@ -5,7 +5,7 @@ import type {
   CharacteristicValue,
   Logging,
 } from 'homebridge'
-import LogiService from '../LogiService'
+import { LogiService } from '../LogiService'
 import { BaseSwitch, SwitchConfig } from './BaseSwitch'
 
 /**

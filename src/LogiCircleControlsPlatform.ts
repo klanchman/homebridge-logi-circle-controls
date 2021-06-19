@@ -6,9 +6,8 @@ import type {
   StaticPlatformPlugin,
 } from 'homebridge'
 import { Camera } from './accessories/Camera'
-import LogiService from './LogiService'
+import { LogiService } from './LogiService'
 import { Config, parseConfig } from './utils/Config'
-import { PackageInfo } from './utils/PackageInfo'
 
 export class LogiCircleControlsPlatform implements StaticPlatformPlugin {
   private config!: Config
@@ -35,7 +34,6 @@ export class LogiCircleControlsPlatform implements StaticPlatformPlugin {
         password: this.config.password,
       },
       this.log,
-      PackageInfo,
     )
 
     const accessories = this.config.accessories.map(

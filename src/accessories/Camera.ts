@@ -1,5 +1,5 @@
 import type { AccessoryPlugin, API, Logging } from 'homebridge'
-import LogiService from '../LogiService'
+import { LogiService } from '../LogiService'
 import { AccessoryConfig } from '../utils/Config'
 import { PackageInfo } from '../utils/PackageInfo'
 import { BaseSwitch } from './BaseSwitch'
