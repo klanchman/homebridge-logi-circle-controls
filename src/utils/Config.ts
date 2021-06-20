@@ -1,4 +1,4 @@
-import { array, boolean, object, string } from 'yup'
+import { array, boolean, InferType, object, string } from 'yup'
 
 const configSchema = object({
   email: string().required(),
@@ -29,7 +29,7 @@ const configSchema = object({
       }),
     }),
   ).required(),
-}).required()
+})
 
 /**
  * Parses accessory configuration, returning a Promise that resolves to
@@ -40,5 +40,5 @@ export const parseConfig = async (config: unknown) => {
   return configSchema.validate(config)
 }
 
-export type Config = ReturnType<typeof configSchema['validateSync']>
+export type Config = InferType<typeof configSchema>
 export type AccessoryConfig = Config['accessories'][number]
