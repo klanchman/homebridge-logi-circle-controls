@@ -29,6 +29,7 @@ export class LogiService {
     this.axios = axios.create({
       baseURL: LogiService.logiBaseUrl,
       headers: {
+        // TODO: Use /api/info endpoint to get min supported UA
         'user-agent': 'iOSClient/3.4.5.31',
         'x-actual-user-agent': `homebridge-logi-circle-controls/${PackageInfo.version}`,
       },
