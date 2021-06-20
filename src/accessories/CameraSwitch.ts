@@ -1,15 +1,27 @@
-const BaseSwitch = require('./BaseSwitch')
+import type {
+  API,
+  CharacteristicGetCallback,
+  CharacteristicSetCallback,
+  CharacteristicValue,
+  Logging,
+} from 'homebridge'
+import { LogiService } from '../LogiService'
+import { BaseSwitch, SwitchConfig } from './BaseSwitch'
 
-class CameraSwitch extends BaseSwitch {
-  constructor(attrs) {
-    super({ ...attrs, apiPropName: 'streamingMode', subtype: 'camera' })
+export class CameraSwitch extends BaseSwitch {
+  constructor(
+    api: API,
+    log: Logging,
+    switchConfig: SwitchConfig,
+    logiService: LogiService,
+  ) {
+    super(api, log, switchConfig, 'streamingMode', logiService, 'camera')
   }
 
   /**
    * Gets the state of the switch
-   * @param {function} callback Node callback, takes Error? and Boolean?
    */
-  async getState(callback) {
+  async getState(callback: CharacteristicGetCallback) {
     try {
       const response = await this.logiService.request(
         'get',
@@ -25,10 +37,11 @@ class CameraSwitch extends BaseSwitch {
 
   /**
    * Sets the switch state
-   * @param {boolean} nextState The desired switch state
-   * @param {function} callback Node callback, takes Error?
    */
-  async setState(nextState, callback) {
+  async setState(
+    nextState: CharacteristicValue,
+    callback: CharacteristicSetCallback,
+  ) {
     try {
       await this.logiService.request(
         'put',
@@ -44,5 +57,3 @@ class CameraSwitch extends BaseSwitch {
     }
   }
 }
-
-module.exports = CameraSwitch

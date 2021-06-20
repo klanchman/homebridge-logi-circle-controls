@@ -1,4 +1,12 @@
-const BaseSwitch = require('./BaseSwitch')
+import type {
+  API,
+  CharacteristicGetCallback,
+  CharacteristicSetCallback,
+  CharacteristicValue,
+  Logging,
+} from 'homebridge'
+import { LogiService } from '../LogiService'
+import { BaseSwitch, SwitchConfig } from './BaseSwitch'
 
 /**
  * The RecordingSwitch actually toggles `privacyMode` on the API, which is
@@ -6,16 +14,21 @@ const BaseSwitch = require('./BaseSwitch')
  *
  * e.g. If `privacyMode: false`, then the RecordingSwitch is on, and vice versa.
  */
-class RecordingSwitch extends BaseSwitch {
-  constructor(attrs) {
-    super({ ...attrs, apiPropName: 'privacyMode', subtype: 'recording' })
+export class RecordingSwitch extends BaseSwitch {
+  constructor(
+    api: API,
+    log: Logging,
+    switchConfig: SwitchConfig,
+    logiService: LogiService,
+  ) {
+    super(api, log, switchConfig, 'privacyMode', logiService, 'recording')
   }
 
   /**
    * Gets the state of the switch
    * @param {function} callback Node callback, takes Error? and Boolean?
    */
-  async getState(callback) {
+  async getState(callback: CharacteristicGetCallback) {
     try {
       const response = await this.logiService.request(
         'get',
@@ -34,7 +47,10 @@ class RecordingSwitch extends BaseSwitch {
    * @param {boolean} nextState The desired switch state
    * @param {function} callback Node callback, takes Error?
    */
-  async setState(nextState, callback) {
+  async setState(
+    nextState: CharacteristicValue,
+    callback: CharacteristicSetCallback,
+  ) {
     try {
       await this.logiService.request(
         'put',
@@ -50,5 +66,3 @@ class RecordingSwitch extends BaseSwitch {
     }
   }
 }
-
-module.exports = RecordingSwitch
