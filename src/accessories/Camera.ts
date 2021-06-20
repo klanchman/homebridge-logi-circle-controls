@@ -25,7 +25,7 @@ export class Camera implements AccessoryPlugin {
     const { Characteristic, Service } = api.hap
 
     this.name = config.name
-    this.informationService = new Service.AccessoryInformation(config.name, '')
+    this.informationService = new Service.AccessoryInformation()
     this.informationService
       .setCharacteristic(Characteristic.Manufacturer, 'Kyle Lanchman')
       .setCharacteristic(Characteristic.Model, PackageInfo.platformName)
