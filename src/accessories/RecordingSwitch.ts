@@ -30,12 +30,11 @@ export class RecordingSwitch extends BaseSwitch {
    */
   async getState(callback: CharacteristicGetCallback) {
     try {
-      const response = await this.logiService.request(
-        'get',
-        `accessories/${this.switchConfig.deviceId}`,
+      const response = await this.logiService.getAccessoryInfo(
+        this.switchConfig.deviceId,
       )
 
-      const state = !response.data.configuration[this.apiPropName]
+      const state = !response.configuration.privacyMode
       callback(undefined, state)
     } catch (error) {
       callback(error)
@@ -52,13 +51,9 @@ export class RecordingSwitch extends BaseSwitch {
     callback: CharacteristicSetCallback,
   ) {
     try {
-      await this.logiService.request(
-        'put',
-        `accessories/${this.switchConfig.deviceId}`,
-        {
-          [this.apiPropName]: !nextState,
-        },
-      )
+      await this.logiService.updateAccessory(this.switchConfig.deviceId, {
+        privacyMode: !nextState,
+      })
 
       callback()
     } catch (error) {
