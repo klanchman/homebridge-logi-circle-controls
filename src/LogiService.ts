@@ -1,10 +1,27 @@
-import axios, { AxiosInstance, Method } from 'axios'
+import got, { CancelableRequest, Options, RequestError, Response } from 'got'
 import type { Logging } from 'homebridge'
 import { PackageInfo } from './utils/PackageInfo'
+
+export interface AccessoryConfiguration {
+  ledEnabled: boolean
+  nightVisionIrLedsEnabled: boolean
+  nightVisionMode: 'auto' | 'off'
+  privacyMode: boolean
+  streamingMode: 'onAlert' | 'off'
+}
+
+export interface AccessoryResponse {
+  configuration: AccessoryConfiguration
+}
 
 interface Credentials {
   email: string
   password: string
+}
+
+interface PendingRequests {
+  authenticate?: Promise<string>
+  getAccessory?: Promise<AccessoryResponse>
 }
 
 export class LogiService {
@@ -15,192 +32,226 @@ export class LogiService {
   private static cooldownIncreaseFactor = 2
   private static consecutiveFailuresAllowed = 3
 
-  private axios: AxiosInstance
+  private client
   private isAuthenticated = false
 
   private consecutiveFailures = 0
+  private cooldownTimeout: NodeJS.Timeout | undefined
   private cooldownSecs = LogiService.initialCooldownSecs
   private isCoolingDown = false
+
+  private pendingRequests: PendingRequests = {}
 
   constructor(
     private readonly credentials: Credentials,
     private readonly log: Logging,
   ) {
-    this.axios = axios.create({
-      baseURL: LogiService.logiBaseUrl,
+    this.client = got.extend({
+      prefixUrl: LogiService.logiBaseUrl,
       headers: {
         // TODO: Use /api/info endpoint to get min supported UA
         'user-agent': 'iOSClient/3.4.5.31',
         'x-actual-user-agent': `homebridge-logi-circle-controls/${PackageInfo.version}`,
       },
+      hooks: {
+        afterResponse: [
+          response => {
+            this.log.debug(
+              `Incoming response: ${response.request.options.method} ${response.requestUrl} - ${response.statusCode}`,
+            )
+
+            return response
+          },
+          this.successfulRequestCooldownHook.bind(this),
+          this.unauthorizedRequestHook.bind(this),
+        ],
+        beforeError: [
+          error => {
+            this.log.error(`Error processing request: ${error}`)
+            return error
+          },
+          this.failedRequestCooldownHook.bind(this),
+        ],
+        beforeRequest: [
+          request => {
+            this.log.debug(`Outgoing request: ${request.method} ${request.url}`)
+          },
+        ],
+      },
     })
+  }
 
-    this.axios.interceptors.response.use(response =>
-      this.successfulRequestCooldownInterceptor(response),
-    )
+  /**
+   * Gets info about the specified accessory
+   *
+   * @param id the accessory's id
+   * @returns a Promise that resolves to the accessory info
+   */
+  async getAccessoryInfo(id: string): Promise<AccessoryResponse> {
+    await this.doPrechecks()
 
-    this.axios.interceptors.response.use(undefined, err =>
-      this.failedRequestCooldownInterceptor(err),
-    )
-
-    this.axios.interceptors.response.use(undefined, err =>
-      this.unauthorizedRequestInterceptor(err),
+    return this.joinRequest('getAccessory', () =>
+      this.client.get(`accessories/${id}`).json<AccessoryResponse>(),
     )
   }
 
   /**
-   * Make an HTTP request to the specified endpoint
+   * Updates accessory configuration
    *
-   * @param {string} method - HTTP method
-   * @param {string} endpoint - API endpoint
-   * @param {Object} [body] - Request body
+   * @param id the id of the accessory to update
+   * @param options the configuration to change on the accessory
+   * @returns a Promise that resolves when the update is complete
    */
-  async request(method: Method, endpoint: string, body: any = undefined) {
+  async updateAccessory(id: string, options: Partial<AccessoryConfiguration>) {
+    await this.doPrechecks()
+    return this.client.put(`accessories/${id}`, {
+      json: options,
+    })
+  }
+
+  private async doPrechecks() {
     this.throwIfCoolingDown()
 
     if (!this.isAuthenticated) {
       await this.authenticate()
     }
+  }
 
-    try {
-      return this.axios.request({
-        method,
-        url: endpoint,
-        data: body,
-      })
-    } catch (error) {
-      this.logAxiosError(error)
-      throw error
+  /**
+   * Joins the caller to a request already in progress, or starts making the
+   * request if there isn't one in progress already
+   *
+   * @param name the name of the request
+   * @param makeRequest a function that makes the request
+   * @returns a Promise that resolves to the result expected for the request
+   */
+  private joinRequest<
+    Name extends keyof PendingRequests,
+    TRequest extends Required<PendingRequests>[Name],
+  >(name: Name, makeRequest: () => TRequest): TRequest {
+    // TODO: How to avoid type casting in here?
+
+    if (this.pendingRequests[name]) {
+      return this.pendingRequests[name] as TRequest
+    } else {
+      const req = makeRequest().then(r => {
+        this.pendingRequests[name] = undefined
+        return r
+      }) as TRequest
+
+      this.pendingRequests[name] = req
+      return req
     }
   }
 
   /**
-   * Authenticates with Logitech's API and updates Axios headers with the
+   * Authenticates with Logitech's API and updates client headers with the
    * returned auth token
-   * @throws
-   * @returns Promise that resolves to the received auth token
+   *
+   * @returns a Promise that resolves to the received auth token
    */
-  private async authenticate() {
+  private authenticate() {
     this.throwIfCoolingDown()
 
-    let response
-    try {
-      response = await this.axios.post('accounts/authorization', {
-        ...this.credentials,
+    return this.joinRequest('authenticate', async () => {
+      const response = await this.client.post('accounts/authorization', {
+        json: this.credentials,
       })
-    } catch (error) {
-      this.logAxiosError(error)
-      throw error
-    }
 
-    const authToken = response.headers[LogiService.logiAuthHeader]
+      const authToken = response.headers[LogiService.logiAuthHeader]
 
-    if (!authToken) {
-      this.isAuthenticated = false
-      throw new Error('Authenticated but did not receive an auth token')
-    }
+      if (typeof authToken !== 'string') {
+        this.isAuthenticated = false
+        throw new Error('Authenticated but did not receive an auth token')
+      }
 
-    this.isAuthenticated = true
+      this.isAuthenticated = true
 
-    this.axios.defaults.headers = {
-      ...this.axios.defaults.headers,
-      [LogiService.logiAuthHeader]: authToken,
-    }
+      this.client = this.client.extend({
+        headers: {
+          [LogiService.logiAuthHeader]: authToken,
+        },
+      })
 
-    return authToken
+      return authToken
+    })
   }
 
   /**
-   * Success interceptor for Axios
+   * Success hook for the client
    *
    * Resets cooldown values to defaults
-   *
-   * @param {Object} response response received by Axios
    */
-  private async successfulRequestCooldownInterceptor(response: any) {
+  private successfulRequestCooldownHook(response: Response): Response {
     this.consecutiveFailures = 0
     this.cooldownSecs = LogiService.initialCooldownSecs
-    return Promise.resolve(response)
+    return response
   }
 
   /**
-   * Error interceptor for Axios
+   * Error hook for the client
    *
    * Handles logic related to cooldown to prevent flooding Logitech with
    * requests that will likely fail
-   *
-   * @param {Object} error error intercepted from Axios
    */
-  private async failedRequestCooldownInterceptor(error: any) {
+  private failedRequestCooldownHook(error: RequestError): RequestError {
     this.consecutiveFailures += 1
-    this.log('Failure', this.consecutiveFailures)
+    this.log.warn('Failure', this.consecutiveFailures)
 
     if (this.consecutiveFailures < LogiService.consecutiveFailuresAllowed) {
-      return Promise.reject(error)
+      return error
     }
 
-    this.log('Cooling down for', this.cooldownSecs, 'seconds')
+    this.log.warn('Cooling down for', this.cooldownSecs, 'seconds')
 
     this.isCoolingDown = true
 
-    setTimeout(() => {
+    if (this.cooldownTimeout) {
+      clearTimeout(this.cooldownTimeout)
+    }
+
+    this.cooldownTimeout = setTimeout(() => {
       this.isCoolingDown = false
     }, this.cooldownSecs * 1000)
 
     this.cooldownSecs *= LogiService.cooldownIncreaseFactor
 
-    return Promise.reject(error)
+    return error
   }
 
   /**
-   * Error interceptor for Axios
+   * Error hook for the client
    *
-   * If response has 401 status, the interceptor will re-authenticate and try
-   * the request again. If the request fails again, it will not be retried.
+   * If response has 401 status, the hook will re-authenticate and try the
+   * request again. If the request fails again, it will not be retried.
    *
-   * If a request fails for a reason other than a 401 response, the interceptor
-   * does not do anything with it.
-   * @param {Object} error error intercepted from Axios
+   * If a request fails for a reason other than a 401 response, the hook does
+   * not do anything with it.
    */
-  private async unauthorizedRequestInterceptor(error: any) {
-    if (
-      !error.response ||
-      error.response.status !== 401 ||
-      !error.response.config
-    ) {
-      return Promise.reject(error)
+  private async unauthorizedRequestHook(
+    response: Response,
+    retry: (options: Options) => CancelableRequest<Response>,
+  ) {
+    if (response.statusCode !== 401) {
+      return response
     }
 
-    if (error.response.config.__isAuthRetry) {
-      this.log('Request failed again after re-authentication')
-      return Promise.reject(error)
+    if (response.request.options.context.isAuthRetry) {
+      throw new Error('Request failed again after re-authentication')
     }
 
-    this.log('Received a 401, re-authenticating and trying again')
-    error.response.config.__isAuthRetry = true
+    this.log.info('Received a 401, re-authenticating and trying again')
 
     const authToken = await this.authenticate()
 
-    // This is necessary when debugging with a proxy, not sure otherwise
-    delete error.config.httpsAgent
-
-    error.config.headers[LogiService.logiAuthHeader] = authToken
-    return this.axios.request(error.config)
-  }
-
-  /**
-   * Logs an error thrown by Axios
-   * @param {Object} error error from Axios
-   */
-  private logAxiosError(error: any) {
-    this.log('Error processing request')
-    if (error.response) {
-      this.log(`Server returned status ${error.response.status}`)
-    } else if (error.request) {
-      this.log('No response received')
-    } else {
-      this.log('Unknown error')
-    }
+    return retry({
+      headers: {
+        [LogiService.logiAuthHeader]: authToken,
+      },
+      context: {
+        isAuthRetry: true,
+      },
+    })
   }
 
   private throwIfCoolingDown() {

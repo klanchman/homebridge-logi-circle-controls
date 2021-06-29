@@ -23,12 +23,11 @@ export class CameraSwitch extends BaseSwitch {
    */
   async getState(callback: CharacteristicGetCallback) {
     try {
-      const response = await this.logiService.request(
-        'get',
-        `accessories/${this.switchConfig.deviceId}`,
+      const response = await this.logiService.getAccessoryInfo(
+        this.switchConfig.deviceId,
       )
 
-      const state = response.data.configuration[this.apiPropName] === 'onAlert'
+      const state = response.configuration[this.apiPropName] === 'onAlert'
       callback(undefined, state)
     } catch (error) {
       callback(error)
@@ -43,13 +42,9 @@ export class CameraSwitch extends BaseSwitch {
     callback: CharacteristicSetCallback,
   ) {
     try {
-      await this.logiService.request(
-        'put',
-        `accessories/${this.switchConfig.deviceId}`,
-        {
-          [this.apiPropName]: nextState ? 'onAlert' : 'off',
-        },
-      )
+      await this.logiService.updateAccessory(this.switchConfig.deviceId, {
+        [this.apiPropName]: nextState ? 'onAlert' : 'off',
+      })
 
       callback()
     } catch (error) {

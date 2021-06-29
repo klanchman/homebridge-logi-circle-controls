@@ -31,12 +31,11 @@ export class NightVisionModeSwitch extends BaseSwitch {
    */
   async getState(callback: CharacteristicGetCallback) {
     try {
-      const response = await this.logiService.request(
-        'get',
-        `accessories/${this.switchConfig.deviceId}`,
+      const response = await this.logiService.getAccessoryInfo(
+        this.switchConfig.deviceId,
       )
 
-      const state = response.data.configuration[this.apiPropName] === 'auto'
+      const state = response.configuration[this.apiPropName] === 'auto'
       callback(undefined, state)
     } catch (error) {
       callback(error)
@@ -53,13 +52,9 @@ export class NightVisionModeSwitch extends BaseSwitch {
     callback: CharacteristicSetCallback,
   ) {
     try {
-      await this.logiService.request(
-        'put',
-        `accessories/${this.switchConfig.deviceId}`,
-        {
-          [this.apiPropName]: nextState ? 'auto' : 'off',
-        },
-      )
+      await this.logiService.updateAccessory(this.switchConfig.deviceId, {
+        [this.apiPropName]: nextState ? 'auto' : 'off',
+      })
 
       callback()
     } catch (error) {
