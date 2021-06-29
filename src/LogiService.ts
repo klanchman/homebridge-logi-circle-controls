@@ -90,20 +90,9 @@ export class LogiService {
   async getAccessoryInfo(id: string): Promise<AccessoryResponse> {
     await this.doPrechecks()
 
-    if (this.pendingRequests.getAccessory) {
-      return this.pendingRequests.getAccessory
-    } else {
-      const req = this.client
-        .get(`accessories/${id}`)
-        .json<AccessoryResponse>()
-        .then(r => {
-          this.pendingRequests.getAccessory = undefined
-          return r
-        })
-
-      this.pendingRequests.getAccessory = req
-      return req
-    }
+    return this.joinRequest('getAccessory', () =>
+      this.client.get(`accessories/${id}`).json<AccessoryResponse>(),
+    )
   }
 
   /**
@@ -129,52 +118,63 @@ export class LogiService {
   }
 
   /**
-   * Authenticates with Logitech's API and updates client headers with the
-   * returned auth token
+   * Joins the caller to a request already in progress, or starts making the
+   * request if there isn't one in progress already
    *
-   * @returns a Promise that resolves to the received auth token
+   * @param name the name of the request
+   * @param makeRequest a function that makes the request
+   * @returns a Promise that resolves to the result expected for the request
    */
-  private async authenticate() {
-    this.throwIfCoolingDown()
+  private joinRequest<
+    Name extends keyof PendingRequests,
+    TRequest extends Required<PendingRequests>[Name],
+  >(name: Name, makeRequest: () => TRequest): TRequest {
+    // TODO: How to avoid type casting in here?
 
-    if (this.pendingRequests.authenticate) {
-      return this.pendingRequests.authenticate
+    if (this.pendingRequests[name]) {
+      return this.pendingRequests[name] as TRequest
     } else {
-      const req = this.doAuthenticate().then(r => {
-        this.pendingRequests.authenticate = undefined
+      const req = makeRequest().then(r => {
+        this.pendingRequests[name] = undefined
         return r
-      })
-      this.pendingRequests.authenticate = req
+      }) as TRequest
+
+      this.pendingRequests[name] = req
       return req
     }
   }
 
   /**
-   * Actually performs authentication with the Logitech API
+   * Authenticates with Logitech's API and updates client headers with the
+   * returned auth token
    *
    * @returns a Promise that resolves to the received auth token
    */
-  private async doAuthenticate() {
-    const response = await this.client.post('accounts/authorization', {
-      json: this.credentials,
+  private authenticate() {
+    this.throwIfCoolingDown()
+
+    return this.joinRequest('authenticate', async () => {
+      const response = await this.client.post('accounts/authorization', {
+        json: this.credentials,
+      })
+
+      const authToken = response.headers[LogiService.logiAuthHeader]
+
+      if (typeof authToken !== 'string') {
+        this.isAuthenticated = false
+        throw new Error('Authenticated but did not receive an auth token')
+      }
+
+      this.isAuthenticated = true
+
+      this.client = this.client.extend({
+        headers: {
+          [LogiService.logiAuthHeader]: authToken,
+        },
+      })
+
+      return authToken
     })
-
-    const authToken = response.headers[LogiService.logiAuthHeader]
-
-    if (typeof authToken !== 'string') {
-      this.isAuthenticated = false
-      throw new Error('Authenticated but did not receive an auth token')
-    }
-
-    this.isAuthenticated = true
-
-    this.client = this.client.extend({
-      headers: {
-        [LogiService.logiAuthHeader]: authToken,
-      },
-    })
-
-    return authToken
   }
 
   /**
