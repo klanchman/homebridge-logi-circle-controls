@@ -19,6 +19,11 @@ interface Credentials {
   password: string
 }
 
+interface PendingRequests {
+  authenticate?: Promise<string>
+  getAccessory?: Promise<AccessoryResponse>
+}
+
 export class LogiService {
   private static logiBaseUrl = 'https://video.logi.com/api/'
   private static logiAuthHeader = 'x-logi-auth'
@@ -34,6 +39,8 @@ export class LogiService {
   private cooldownTimeout: NodeJS.Timeout | undefined
   private cooldownSecs = LogiService.initialCooldownSecs
   private isCoolingDown = false
+
+  private pendingRequests: PendingRequests = {}
 
   constructor(
     private readonly credentials: Credentials,
@@ -82,7 +89,21 @@ export class LogiService {
    */
   async getAccessoryInfo(id: string): Promise<AccessoryResponse> {
     await this.doPrechecks()
-    return this.client.get(`accessories/${id}`).json<AccessoryResponse>()
+
+    if (this.pendingRequests.getAccessory) {
+      return this.pendingRequests.getAccessory
+    } else {
+      const req = this.client
+        .get(`accessories/${id}`)
+        .json<AccessoryResponse>()
+        .then(r => {
+          this.pendingRequests.getAccessory = undefined
+          return r
+        })
+
+      this.pendingRequests.getAccessory = req
+      return req
+    }
   }
 
   /**
@@ -116,13 +137,31 @@ export class LogiService {
   private async authenticate() {
     this.throwIfCoolingDown()
 
+    if (this.pendingRequests.authenticate) {
+      return this.pendingRequests.authenticate
+    } else {
+      const req = this.doAuthenticate().then(r => {
+        this.pendingRequests.authenticate = undefined
+        return r
+      })
+      this.pendingRequests.authenticate = req
+      return req
+    }
+  }
+
+  /**
+   * Actually performs authentication with the Logitech API
+   *
+   * @returns a Promise that resolves to the received auth token
+   */
+  private async doAuthenticate() {
     const response = await this.client.post('accounts/authorization', {
       json: this.credentials,
     })
 
     const authToken = response.headers[LogiService.logiAuthHeader]
 
-    if (!authToken) {
+    if (typeof authToken !== 'string') {
       this.isAuthenticated = false
       throw new Error('Authenticated but did not receive an auth token')
     }
