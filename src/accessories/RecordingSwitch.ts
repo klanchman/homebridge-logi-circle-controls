@@ -34,7 +34,7 @@ export class RecordingSwitch extends BaseSwitch {
         this.switchConfig.deviceId,
       )
 
-      const state = !response.configuration.privacyMode
+      const state = !response.configuration[this.apiPropName]
       callback(undefined, state)
     } catch (error) {
       callback(error)
@@ -52,7 +52,7 @@ export class RecordingSwitch extends BaseSwitch {
   ) {
     try {
       await this.logiService.updateAccessory(this.switchConfig.deviceId, {
-        privacyMode: !nextState,
+        [this.apiPropName]: !nextState,
       })
 
       callback()
