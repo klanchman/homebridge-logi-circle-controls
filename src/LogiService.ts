@@ -3,6 +3,7 @@ import type { Logging } from 'homebridge'
 import { PackageInfo } from './utils/PackageInfo'
 
 export interface AccessoryConfiguration {
+  alsLevel: number
   ledEnabled: boolean
   nightVisionIrLedsEnabled: boolean
   nightVisionMode: 'auto' | 'off'

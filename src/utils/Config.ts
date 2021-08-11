@@ -15,6 +15,10 @@ const configSchema = object({
         name: string().default('LED'),
         disabled: boolean(),
       }),
+      lightSensor: object({
+        name: string().default('Light Sensor'),
+        disabled: boolean(),
+      }),
       nightVisionIR: object({
         name: string().default('Night IR'),
         disabled: boolean().default(true),

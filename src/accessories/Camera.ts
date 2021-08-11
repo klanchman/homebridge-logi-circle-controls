@@ -2,6 +2,7 @@ import type { AccessoryPlugin, API, Logging } from 'homebridge'
 import { LogiService } from '../LogiService'
 import { AccessoryConfig } from '../utils/Config'
 import { PackageInfo } from '../utils/PackageInfo'
+import { AmbientLightSensor } from './AmbientLightSensor'
 import { BaseSwitch } from './BaseSwitch'
 import { CameraSwitch } from './CameraSwitch'
 import { LEDSwitch } from './LEDSwitch'
@@ -12,6 +13,7 @@ export class Camera implements AccessoryPlugin {
   name: string
 
   private informationService
+  private als
   private switches: BaseSwitch[]
 
   constructor(
@@ -101,9 +103,30 @@ export class Camera implements AccessoryPlugin {
         ),
       )
     }
+
+    if (!config.lightSensor.disabled) {
+      this.als = new AmbientLightSensor(
+        this.api,
+        this.log,
+        {
+          deviceId: config.deviceId,
+          name: config.lightSensor.name,
+        },
+        this.logiService,
+      )
+    }
   }
 
   getServices() {
-    return [this.informationService, ...this.switches.map(s => s.switchService)]
+    let services = [
+      this.informationService,
+      ...this.switches.map(s => s.switchService),
+    ]
+
+    if (this.als) {
+      services.push(this.als.alsService)
+    }
+
+    return services
   }
 }
