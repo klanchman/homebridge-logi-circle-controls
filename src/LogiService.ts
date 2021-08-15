@@ -67,6 +67,7 @@ export class LogiService {
         ],
         beforeError: [
           error => {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             this.log.error(`Error processing request: ${error}`)
             return error
           },
@@ -74,7 +75,9 @@ export class LogiService {
         ],
         beforeRequest: [
           request => {
-            this.log.debug(`Outgoing request: ${request.method} ${request.url}`)
+            this.log.debug(
+              `Outgoing request: ${request.method} ${request.url.toString()}`,
+            )
           },
         ],
       },

@@ -1,10 +1,4 @@
-import type {
-  API,
-  CharacteristicGetCallback,
-  CharacteristicSetCallback,
-  CharacteristicValue,
-  Logging,
-} from 'homebridge'
+import type { API, CharacteristicValue, Logging } from 'homebridge'
 import { LogiService } from '../LogiService'
 import { BaseSwitch, SwitchConfig } from './BaseSwitch'
 
@@ -26,38 +20,22 @@ export class RecordingSwitch extends BaseSwitch {
 
   /**
    * Gets the state of the switch
-   * @param {function} callback Node callback, takes Error? and Boolean?
    */
-  async getState(callback: CharacteristicGetCallback) {
-    try {
-      const response = await this.logiService.getAccessoryInfo(
-        this.switchConfig.deviceId,
-      )
+  async getState() {
+    const response = await this.logiService.getAccessoryInfo(
+      this.switchConfig.deviceId,
+    )
 
-      const state = !response.configuration[this.apiPropName]
-      callback(undefined, state)
-    } catch (error) {
-      callback(error)
-    }
+    return !response.configuration[this.apiPropName]
   }
 
   /**
    * Sets the switch state
-   * @param {boolean} nextState The desired switch state
-   * @param {function} callback Node callback, takes Error?
+   * @param nextState The desired switch state
    */
-  async setState(
-    nextState: CharacteristicValue,
-    callback: CharacteristicSetCallback,
-  ) {
-    try {
-      await this.logiService.updateAccessory(this.switchConfig.deviceId, {
-        [this.apiPropName]: !nextState,
-      })
-
-      callback()
-    } catch (error) {
-      callback(error)
-    }
+  async setState(nextState: CharacteristicValue) {
+    await this.logiService.updateAccessory(this.switchConfig.deviceId, {
+      [this.apiPropName]: !nextState,
+    })
   }
 }

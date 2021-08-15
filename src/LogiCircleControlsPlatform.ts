@@ -24,7 +24,8 @@ export class LogiCircleControlsPlatform implements StaticPlatformPlugin {
     try {
       this.config = await parseConfig(this.rawConfig)
     } catch (err) {
-      this.log.error(`Error reading config: ${err.message}`)
+      const msg = err instanceof Error ? err.message : 'unknown error'
+      this.log.error(`Error reading config: ${msg}`)
       process.exit(1)
     }
 
