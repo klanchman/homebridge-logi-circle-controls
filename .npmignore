@@ -1,4 +1,5 @@
 *.tgz
+.eslintrc*
 .prettierrc
 .vscode
 src
