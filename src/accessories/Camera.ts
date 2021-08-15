@@ -6,6 +6,7 @@ import { BaseSwitch } from './BaseSwitch'
 import { CameraSwitch } from './CameraSwitch'
 import { LEDSwitch } from './LEDSwitch'
 import { NightVisionIRSwitch } from './NightVisionIRSwitch'
+import { NightVisionModeSwitch } from './NightVisionModeSwitch'
 import { RecordingSwitch } from './RecordingSwitch'
 
 export class Camera implements AccessoryPlugin {
@@ -76,7 +77,7 @@ export class Camera implements AccessoryPlugin {
 
     if (!config.nightVisionMode.disabled) {
       this.switches.push(
-        new NightVisionIRSwitch(
+        new NightVisionModeSwitch(
           this.api,
           this.log,
           {
