@@ -1,5 +1,6 @@
 import got, { CancelableRequest, Options, RequestError, Response } from 'got'
 import type { Logging } from 'homebridge'
+
 import { PackageInfo } from './utils/PackageInfo'
 
 export interface AccessoryConfiguration {

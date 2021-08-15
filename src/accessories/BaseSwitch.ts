@@ -1,4 +1,5 @@
 import type { API, CharacteristicValue, Logging, Service } from 'homebridge'
+
 import { AccessoryConfiguration, LogiService } from '../LogiService'
 
 export interface SwitchConfig {
@@ -21,6 +22,7 @@ export class BaseSwitch {
   ) {
     this.subtype = subtype || apiPropName
 
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     const { Characteristic, Service } = api.hap
 
     this.switchService = new Service.Switch(

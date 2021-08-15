@@ -1,5 +1,7 @@
 import type { API, CharacteristicValue, Logging } from 'homebridge'
+
 import { LogiService } from '../LogiService'
+
 import { BaseSwitch, SwitchConfig } from './BaseSwitch'
 
 /**

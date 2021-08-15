@@ -5,8 +5,9 @@ import type {
   PlatformConfig,
   StaticPlatformPlugin,
 } from 'homebridge'
-import { Camera } from './accessories/Camera'
+
 import { LogiService } from './LogiService'
+import { Camera } from './accessories/Camera'
 import { Config, parseConfig } from './utils/Config'
 
 export class LogiCircleControlsPlatform implements StaticPlatformPlugin {
