@@ -1,15 +1,13 @@
 import crypto from 'crypto'
-import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
 import { Command, flags } from '@oclif/command'
 import cli from 'cli-ux'
-import got from 'got'
-import { lazy, object, string } from 'yup'
 
+import { AccountManager } from '../../common/AccountManager'
 import { JWT } from '../../common/JWT'
-import { mapRuleToKeys } from '../../common/ext/yup'
+import { LogiAuthService } from '../../common/LogiAuthService'
 
 export class Login extends Command {
   static description = 'Log in with your Logitech account to connect cameras'
@@ -20,23 +18,34 @@ export class Login extends Command {
       default: path.join(os.homedir(), '.homebridge'),
       description: 'The path to your Homebridge directory',
     }),
+    verbose: flags.boolean({
+      char: 'v',
+    }),
   }
 
-  private static authFilename = 'logi-circle-controls-auth.json'
-  // From Logi Circle iOS app
-  private static clientId = '0499da51-621f-443f-84dc-5064f631f0d0'
-  // From Logi Circle iOS app - arbitrary URLs are not allowed
-  private static redirectURI = 'com.logitech.Circle://lids'
+  myLog = {
+    debug: (message: string, ...params: unknown[]) => {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
+      const { flags } = this.parse(Login)
+
+      if (!flags.verbose) {
+        return
+      }
+
+      this.log(message, ...params)
+    },
+    error: (message: string, ...params: unknown[]) =>
+      this.log(message, ...params),
+    info: (message: string, ...params: unknown[]) =>
+      this.log(message, ...params),
+  }
 
   async run() {
     // eslint-disable-next-line @typescript-eslint/no-shadow
     const { flags } = this.parse(Login)
 
-    const homebridgeDir = flags.homebridgeDir
-
-    if (!fs.statSync(homebridgeDir).isDirectory()) {
-      throw new Error(`Homebridge path '${homebridgeDir}' must be a directory`)
-    }
+    const accountManager = new AccountManager(flags.homebridgeDir)
+    await accountManager.getAllAccounts() // Check that the path is OK
 
     const codeVerifier = makeCodeVerifier()
     const codeChallenge = crypto
@@ -49,20 +58,20 @@ export class Login extends Command {
       .replace(/\//g, '_')
 
     const loginURL = new URL('https://id.logi.com')
-    loginURL.searchParams.append('client_id', Login.clientId)
+    loginURL.searchParams.append('client_id', LogiAuthService.clientId)
     loginURL.searchParams.append('scope', 'circle:all')
     loginURL.searchParams.append('response_type', 'code')
-    loginURL.searchParams.append('redirect_uri', Login.redirectURI)
+    loginURL.searchParams.append('redirect_uri', LogiAuthService.redirectURI)
     loginURL.searchParams.append('code_challenge_method', 'S256')
     loginURL.searchParams.append('code_challenge', codeChallenge)
 
-    this.log('Your browser will open to log into your Logitech account')
+    this.myLog.info('Your browser will open to log into your Logitech account')
 
     await cli.anykey()
 
     await cli.open(loginURL.toString())
 
-    this.log(
+    this.myLog.info(
       '\nOnce you log in, copy the URL you are sent to (starts with "com.logitech.Circle://lids") and paste it below',
     )
 
@@ -81,69 +90,24 @@ export class Login extends Command {
       throw new Error('Invalid redirect URL')
     }
 
-    const tokenResponse = await got
-      .post('https://accounts.logi.com/identity/oauth2/token', {
-        form: {
-          grant_type: 'authorization_code',
-          client_id: Login.clientId,
-          code_verifier: codeVerifier,
-          code,
-          redirect_uri: Login.redirectURI,
-        },
-      })
-      .json<TokenResponse>()
+    const authService = new LogiAuthService(this.myLog)
 
-    const accountId = JWT.fromString(
-      tokenResponse.access_token,
-      object({
-        sub: string().required(),
-      }),
-    ).payload.sub
+    const tokenResponse = await authService.exchangeAuthCodeForCredentials(
+      code,
+      codeVerifier,
+    )
 
-    const authFilePath = path.join(homebridgeDir, Login.authFilename)
+    const accessToken = new JWT(tokenResponse.access_token)
 
-    let config: AuthConfig
-
-    if (fs.existsSync(authFilePath)) {
-      const fileContents = fs.readFileSync(authFilePath)
-      config = authConfigSchema.validateSync(
-        JSON.parse(fileContents.toString()),
-      )
-    } else {
-      config = {}
-    }
-
-    config[accountId] = {
-      accessToken: tokenResponse.access_token,
+    await accountManager.setAccount(accessToken.payload.sub, {
+      accessToken: accessToken,
       codeVerifier,
       refreshToken: tokenResponse.refresh_token,
-    }
+    })
 
-    fs.writeFileSync(authFilePath, JSON.stringify(config, undefined, 2))
-
-    this.log('\nLogged in successfully')
+    this.myLog.info('\nLogged in successfully')
   }
 }
-
-interface TokenResponse {
-  access_token: string
-  token_type: 'Bearer'
-  expires_in: number
-  refresh_token: string
-}
-
-const authConfigSchema = lazy(obj =>
-  object(
-    mapRuleToKeys(
-      obj,
-      object({
-        accessToken: string().required(),
-        codeVerifier: string().required(),
-        refreshToken: string().required(),
-      }).required(),
-    ),
-  ).required(),
-)
 
 const makeCodeVerifier = (length = 43) => {
   const randBank = [
@@ -160,12 +124,3 @@ const makeCodeVerifier = (length = 43) => {
 
   return Buffer.from(chars).toString('ascii')
 }
-
-type AuthConfig = Record<
-  string,
-  {
-    accessToken: string
-    codeVerifier: string
-    refreshToken: string
-  }
->

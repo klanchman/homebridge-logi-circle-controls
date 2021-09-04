@@ -1,8 +1,6 @@
 import { array, boolean, InferType, object, string } from 'yup'
 
 const configSchema = object({
-  email: string().required(),
-  password: string().required(),
   accessories: array(
     object({
       deviceId: string().required(),

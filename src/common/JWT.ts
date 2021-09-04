@@ -1,18 +1,13 @@
-import { InferType, object, ObjectSchema } from 'yup'
+import { isBefore, subMinutes } from 'date-fns'
+import { InferType, object, string, number } from 'yup'
 
-export class JWT<Payload extends Record<string, unknown>> {
-  private constructor(
-    public header: Record<string, string>,
-    public payload: Payload,
-    public signature: string,
-  ) {}
+export class JWT {
+  header: Record<string, string>
+  payload: InferType<typeof basePayload>
+  signature: string
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static fromString<PayloadShape extends ObjectSchema<Record<string, any>>>(
-    tokenString: string,
-    payloadShape: PayloadShape,
-  ): JWT<InferType<PayloadShape>> {
-    const blocks = tokenString.split('.')
+  constructor(public rawToken: string) {
+    const blocks = rawToken.split('.')
 
     if (blocks.length != 3) {
       throw new Error(`Expected JWT to have 3 blocks, but got ${blocks.length}`)
@@ -20,9 +15,18 @@ export class JWT<Payload extends Record<string, unknown>> {
 
     const b64D = (s: string) => Buffer.from(s, 'base64').toString()
 
-    const header = object().validateSync(JSON.parse(b64D(blocks[0])))
-    const payload = payloadShape.validateSync(JSON.parse(b64D(blocks[1])))
+    this.header = object().validateSync(JSON.parse(b64D(blocks[0])))
+    this.payload = basePayload.validateSync(JSON.parse(b64D(blocks[1])))
+    this.signature = blocks[2]
+  }
 
-    return new JWT(header, payload, blocks[2])
+  get isValid(): boolean {
+    // Consider token valid up to 5 minutes before expiration
+    return isBefore(subMinutes(new Date(), 5), this.payload.exp * 1000)
   }
 }
+
+const basePayload = object({
+  sub: string().required(),
+  exp: number().required(),
+})
