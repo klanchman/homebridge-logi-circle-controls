@@ -188,13 +188,13 @@ export class LogiService {
         }
 
         await this.accountManager.setAccount(this.userId, this.account)
-
-        this.client = this.client.extend({
-          headers: {
-            Authorization: `LIDS ${this.account.accessToken.rawToken}`,
-          },
-        })
       }
+
+      this.client = this.client.extend({
+        headers: {
+          Authorization: `LIDS ${this.account.accessToken.rawToken}`,
+        },
+      })
 
       return this.account.accessToken
     })
