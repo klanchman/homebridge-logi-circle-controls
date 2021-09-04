@@ -35,11 +35,12 @@ export class LogiCircleControlsPlatform implements StaticPlatformPlugin {
     const accounts = await acctMgr.getAllAccounts()
     const firstAcct = Object.keys(accounts)[0]
     if (!firstAcct) {
-      // FIXME: Better error message
-      throw new Error('You are not logged into any accounts')
+      throw new Error(
+        'You are not logged into any accounts. Check the README to learn how to set up the plugin.',
+      )
     }
 
-    // FIXME: Use all accounts, not just first
+    // TODO #32: Use all accounts, not just first
     const logiService = new LogiService(firstAcct, this.api, this.log)
 
     const accessories = this.config.accessories.map(
