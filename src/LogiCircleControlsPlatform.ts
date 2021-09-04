@@ -1,6 +1,6 @@
 import type {
-  AccessoryPlugin,
   API,
+  AccessoryPlugin,
   Logging,
   PlatformConfig,
   StaticPlatformPlugin,

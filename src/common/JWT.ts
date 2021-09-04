@@ -1,5 +1,5 @@
 import { isBefore, subMinutes } from 'date-fns'
-import { InferType, object, string, number } from 'yup'
+import { InferType, number, object, string } from 'yup'
 
 export class JWT {
   header: Record<string, string>

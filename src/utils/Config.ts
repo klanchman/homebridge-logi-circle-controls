@@ -1,4 +1,4 @@
-import { array, boolean, InferType, object, string } from 'yup'
+import { InferType, array, boolean, object, string } from 'yup'
 
 const configSchema = object({
   accessories: array(

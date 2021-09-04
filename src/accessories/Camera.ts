@@ -1,4 +1,4 @@
-import type { AccessoryPlugin, API, Logging } from 'homebridge'
+import type { API, AccessoryPlugin, Logging } from 'homebridge'
 
 import { LogiService } from '../LogiService'
 import { AccessoryConfig } from '../utils/Config'
