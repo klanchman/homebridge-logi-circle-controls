@@ -17,8 +17,13 @@ extends:
 
 rules:
   # Base ESLint Rules
+  ## Disable
   no-duplicate-imports: 0
   no-shadow: 0
+  ## Enable
+  sort-imports:
+    - warn
+    - ignoreDeclarationSort: true
 
   # TypeScript Plugin Rules
   ## Disable

@@ -1,6 +1,9 @@
 import got, { CancelableRequest, Options, RequestError, Response } from 'got'
-import type { Logging } from 'homebridge'
+import type { API, Logging } from 'homebridge'
 
+import { AccountInfo, AccountManager } from './common/AccountManager'
+import { JWT } from './common/JWT'
+import { LogiAuthService } from './common/LogiAuthService'
 import { PackageInfo } from './utils/PackageInfo'
 
 export interface AccessoryConfiguration {
@@ -15,26 +18,22 @@ export interface AccessoryResponse {
   configuration: AccessoryConfiguration
 }
 
-interface Credentials {
-  email: string
-  password: string
-}
-
 interface PendingRequests {
-  authenticate?: Promise<string>
+  ensureAuthenticated?: Promise<JWT>
   getAccessory?: Promise<AccessoryResponse>
 }
 
 export class LogiService {
   private static logiBaseUrl = 'https://video.logi.com/api/'
-  private static logiAuthHeader = 'x-logi-auth'
 
   private static initialCooldownSecs = 30
   private static cooldownIncreaseFactor = 2
   private static consecutiveFailuresAllowed = 3
 
+  private account: AccountInfo | undefined
+  private accountManager: AccountManager
+  private authService: LogiAuthService
   private client
-  private isAuthenticated = false
 
   private consecutiveFailures = 0
   private cooldownTimeout: NodeJS.Timeout | undefined
@@ -44,9 +43,13 @@ export class LogiService {
   private pendingRequests: PendingRequests = {}
 
   constructor(
-    private readonly credentials: Credentials,
+    private readonly userId: string,
+    private readonly api: API,
     private readonly log: Logging,
   ) {
+    this.accountManager = new AccountManager(api.user.storagePath())
+    this.authService = new LogiAuthService(log)
+
     this.client = got.extend({
       prefixUrl: LogiService.logiBaseUrl,
       headers: {
@@ -115,10 +118,7 @@ export class LogiService {
 
   private async doPrechecks() {
     this.throwIfCoolingDown()
-
-    if (!this.isAuthenticated) {
-      await this.authenticate()
-    }
+    await this.ensureAuthenticated()
   }
 
   /**
@@ -149,35 +149,54 @@ export class LogiService {
   }
 
   /**
-   * Authenticates with Logitech's API and updates client headers with the
-   * returned auth token
+   * Ensures access token is up to date, refreshing and updating default headers
+   * if necessary.
    *
-   * @returns a Promise that resolves to the received auth token
+   * @param forceRefresh Whether to force refresh of the access token, defaults
+   * to `false`
    */
-  private authenticate() {
+  private async ensureAuthenticated(forceRefresh = false) {
     this.throwIfCoolingDown()
 
-    return this.joinRequest('authenticate', async () => {
-      const response = await this.client.post('accounts/authorization', {
-        json: this.credentials,
-      })
+    return this.joinRequest('ensureAuthenticated', async () => {
+      if (!this.account) {
+        const account = await this.accountManager.getAccount(this.userId)
 
-      const authToken = response.headers[LogiService.logiAuthHeader]
+        if (!account) {
+          throw new Error(`Account for user id ${this.userId} does not exist`)
+        }
 
-      if (typeof authToken !== 'string') {
-        this.isAuthenticated = false
-        throw new Error('Authenticated but did not receive an auth token')
+        this.account = account
       }
 
-      this.isAuthenticated = true
+      if (!this.account.accessToken.isValid || forceRefresh) {
+        this.log.debug(
+          `Refreshing access token. Exp: ${new Date(
+            this.account.accessToken.payload.exp * 1000,
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          ).toISOString()} Forced? ${forceRefresh}`,
+        )
+
+        const newCredentials = await this.authService.refreshCredentials(
+          this.account,
+        )
+
+        this.account = {
+          ...this.account,
+          accessToken: new JWT(newCredentials.access_token),
+          refreshToken: newCredentials.refresh_token,
+        }
+
+        await this.accountManager.setAccount(this.userId, this.account)
+      }
 
       this.client = this.client.extend({
         headers: {
-          [LogiService.logiAuthHeader]: authToken,
+          Authorization: `LIDS ${this.account.accessToken.rawToken}`,
         },
       })
 
-      return authToken
+      return this.account.accessToken
     })
   }
 
@@ -246,11 +265,11 @@ export class LogiService {
 
     this.log.info('Received a 401, re-authenticating and trying again')
 
-    const authToken = await this.authenticate()
+    const accessToken = await this.ensureAuthenticated(true)
 
     return retry({
       headers: {
-        [LogiService.logiAuthHeader]: authToken,
+        Authorization: `LIDS ${accessToken.rawToken}`,
       },
       context: {
         isAuthRetry: true,

@@ -1,6 +1,0 @@
-*.tgz
-.eslintrc*
-.prettierrc
-.vscode
-src
-tsconfig.json
