@@ -3,6 +3,7 @@ import os from 'os'
 import path from 'path'
 
 import { Command, flags } from '@oclif/command'
+import chalk from 'chalk'
 import cli from 'cli-ux'
 
 import { AccountManager } from '../../common/AccountManager'
@@ -65,15 +66,31 @@ export class Login extends Command {
     loginURL.searchParams.append('code_challenge_method', 'S256')
     loginURL.searchParams.append('code_challenge', codeChallenge)
 
-    this.myLog.info('Your browser will open to log into your Logitech account')
-
-    await cli.anykey()
-
-    await cli.open(loginURL.toString())
-
     this.myLog.info(
-      '\nOnce you log in, copy the URL you are sent to (starts with "com.logitech.Circle://lids") and paste it below',
+      'Visit this URL in your web browser to log in to your Logitech account:',
     )
+    this.myLog.info(chalk.underline(loginURL.toString()))
+
+    this.myLog.info(`
+${chalk.bold.yellow('IMPORTANT')}
+Once you log in, you need to copy the redirect URL Logitech sends you to.
+
+If your browser follows the redirect, you will end up on a page that cannot be
+opened. This is expected. Copy the URL and paste it below.
+
+If your browser gets "stuck" on the Logitech website, you need to open the
+developer console. In most browsers, you can get to the developer console by
+right clicking in the webpage, clicking Inspect Element, then clicking on the
+Console tab.
+
+Visit ${chalk.underline(
+      'https://github.com/klanchman/homebridge-logi-circle-controls/wiki/How-to-Log-In',
+    )}
+for more detailed instructions.
+
+You are looking for a URL that starts with "com.logitech.Circle://lids"; copy
+the URL and paste it below.
+    `)
 
     const redirectURLStr = (await cli.prompt('Redirect URL')) as string
 
