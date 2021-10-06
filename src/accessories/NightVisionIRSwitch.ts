@@ -1,5 +1,7 @@
 import type { API, Logging } from 'homebridge'
+
 import { LogiService } from '../LogiService'
+
 import { BaseSwitch, SwitchConfig } from './BaseSwitch'
 
 export class NightVisionIRSwitch extends BaseSwitch {

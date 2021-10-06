@@ -1,48 +1,23 @@
-import { array, boolean, InferType, object, string } from 'yup'
+import { InferType, object, string } from 'yup'
 
 const configSchema = object({
-  email: string().required(),
-  password: string().required(),
-  accessories: array(
-    object({
-      deviceId: string().required(),
-      name: string().default('Logi Circle'),
-      camera: object({
-        name: string().default('Camera'),
-        disabled: boolean(),
-      }),
-      led: object({
-        name: string().default('LED'),
-        disabled: boolean(),
-      }),
-      lightSensor: object({
-        name: string().default('Light Sensor'),
-        disabled: boolean(),
-      }),
-      nightVisionIR: object({
-        name: string().default('Night IR'),
-        disabled: boolean().default(true),
-      }),
-      nightVisionMode: object({
-        name: string().default('Night Vision'),
-        disabled: boolean().default(true),
-      }),
-      recording: object({
-        name: string().default('Recording'),
-        disabled: boolean(),
-      }),
-    }),
-  ).required(),
+  nameOverrides: object({
+    camera: string().default('Camera'),
+    led: string().default('LED'),
+    lightSensor: string().default('Light Sensor'),
+    nightVisionIR: string().default('Night IR'),
+    nightVisionMode: string().default('Night Vision'),
+    recording: string().default('Recording'),
+  }),
 })
 
 /**
- * Parses accessory configuration, returning a Promise that resolves to
- * a normalized copy. Rejects with validation error(s) if config is invalid
+ * Parses accessory configuration, returning a normalized copy. Throws a
+ * validation error if config is invalid
  * @param config configuration object from Homebridge
  */
-export const parseConfig = async (config: unknown) => {
-  return configSchema.validate(config)
+export const parseConfig = (config: unknown) => {
+  return configSchema.validateSync(config)
 }
 
 export type Config = InferType<typeof configSchema>
-export type AccessoryConfig = Config['accessories'][number]

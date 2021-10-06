@@ -2,10 +2,14 @@
   "name": "homebridge-logi-circle-controls",
   "version": "3.0.0-beta.1",
   "description": "Homebridge plugin for extended control of Logitech Circle cameras",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
+  "bin": {
+    "homebridge-logi-circle-controls": "dist/cli/run.js"
+  },
   "scripts": {
-    "build": "yarn clean && tsc",
+    "build": "yarn clean && tsc && yarn lint",
     "clean": "rm -rf dist/",
+    "lint": "eslint src",
     "prepack": "yarn build",
     "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,ts}\"",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,22 +17,41 @@
   "author": "Kyle Lanchman",
   "license": "MIT",
   "dependencies": {
+    "@oclif/command": "^1.8.0",
+    "@oclif/config": "^1.17.0",
+    "chalk": "^4.1.2",
+    "cli-ux": "^5.6.3",
+    "date-fns": "^2.23.0",
     "got": "^11.8.2",
     "yup": "^0.32.9"
   },
   "devDependencies": {
+    "@oclif/dev-cli": "^1.26.0",
     "@types/node": "^12",
     "@types/yup": "^0.29.11",
+    "@typescript-eslint/eslint-plugin": "^4.29.1",
+    "@typescript-eslint/parser": "^4.29.1",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.24.0",
     "homebridge": "^1.3.1",
     "prettier": "^2.2.1",
+    "ts-node": "^10.2.0",
     "typescript": "^4.2.2"
   },
   "keywords": [
     "homebridge-plugin"
   ],
   "engines": {
-    "homebridge": ">=1",
+    "homebridge": ">=1.3",
     "node": ">=12"
+  },
+  "files": [
+    "dist/"
+  ],
+  "oclif": {
+    "commands": "dist/cli/commands",
+    "bin": "homebridge-logi-circle-controls"
   },
   "repository": "https://github.com/klanchman/homebridge-logi-circle-controls"
 }

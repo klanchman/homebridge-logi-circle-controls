@@ -1,12 +1,5 @@
-import type {
-  API,
-  CharacteristicGetCallback,
-  CharacteristicSetCallback,
-  CharacteristicValue,
-  Logging,
-  Service,
-} from 'homebridge'
-import { CharacteristicEventTypes } from 'homebridge'
+import type { API, CharacteristicValue, Logging, Service } from 'homebridge'
+
 import { AccessoryConfiguration, LogiService } from '../LogiService'
 
 export interface SwitchConfig {
@@ -15,9 +8,8 @@ export interface SwitchConfig {
 }
 
 export class BaseSwitch {
-  switchService: Service
-
-  private subtype: string
+  readonly switchService: Service
+  readonly subtype: string
 
   constructor(
     protected readonly api: API,
@@ -29,6 +21,7 @@ export class BaseSwitch {
   ) {
     this.subtype = subtype || apiPropName
 
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     const { Characteristic, Service } = api.hap
 
     this.switchService = new Service.Switch(
@@ -38,41 +31,27 @@ export class BaseSwitch {
 
     this.switchService
       .getCharacteristic(Characteristic.On)
-      .on(CharacteristicEventTypes.GET, this.getState.bind(this))
-      .on(CharacteristicEventTypes.SET, this.setState.bind(this))
+      .onGet(this.getState.bind(this))
+      .onSet(this.setState.bind(this))
   }
 
   /**
    * Gets the state of the switch
    */
-  async getState(callback: CharacteristicGetCallback) {
-    try {
-      const response = await this.logiService.getAccessoryInfo(
-        this.switchConfig.deviceId,
-      )
+  async getState() {
+    const response = await this.logiService.getAccessoryInfo(
+      this.switchConfig.deviceId,
+    )
 
-      const state = response.configuration[this.apiPropName]
-      callback(undefined, state)
-    } catch (error) {
-      callback(error)
-    }
+    return response.configuration[this.apiPropName]
   }
 
   /**
    * Sets the switch state
    */
-  async setState(
-    nextState: CharacteristicValue,
-    callback: CharacteristicSetCallback,
-  ) {
-    try {
-      await this.logiService.updateAccessory(this.switchConfig.deviceId, {
-        [this.apiPropName]: nextState,
-      })
-
-      callback()
-    } catch (error) {
-      callback(error)
-    }
+  async setState(nextState: CharacteristicValue) {
+    await this.logiService.updateAccessory(this.switchConfig.deviceId, {
+      [this.apiPropName]: nextState,
+    })
   }
 }
