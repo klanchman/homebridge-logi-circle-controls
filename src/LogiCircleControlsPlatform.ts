@@ -1,52 +1,111 @@
 import type {
   API,
-  AccessoryPlugin,
+  DynamicPlatformPlugin,
   Logging,
+  PlatformAccessory,
   PlatformConfig,
-  StaticPlatformPlugin,
 } from 'homebridge'
 
 import { LogiService } from './LogiService'
 import { Camera } from './accessories/Camera'
 import { AccountManager } from './common/AccountManager'
 import { Config, parseConfig } from './utils/Config'
+import { PackageInfo } from './utils/PackageInfo'
 
-export class LogiCircleControlsPlatform implements StaticPlatformPlugin {
+export class LogiCircleControlsPlatform implements DynamicPlatformPlugin {
+  private accessories: { [uuid: string]: Camera } = {}
   private config!: Config
+
+  private cachedAccessories: PlatformAccessory[] = []
 
   constructor(
     private readonly log: Logging,
     private readonly rawConfig: PlatformConfig,
     private readonly api: API,
-  ) {}
-
-  async accessories(callback: (foundAccessories: AccessoryPlugin[]) => void) {
-    this.log.info('Loading accessories...')
-
+  ) {
     try {
-      this.config = await parseConfig(this.rawConfig)
+      this.config = parseConfig(this.rawConfig)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown error'
-      this.log.error(`Error reading config: ${msg}`)
-      process.exit(1)
+      throw new Error(`Error reading config: ${msg}`)
     }
+
+    this.api.on('didFinishLaunching', () => {
+      if (this.cachedAccessories.length) {
+        // TODO: Use the accessories that were cached?
+        // Things seem to work fine if I don't, and it makes it so I don't have to
+        // write as much code. Not sure that there's really a downside...
+        this.log.info(
+          `Resetting cached accessories (${this.cachedAccessories.length})`,
+        )
+
+        this.api.unregisterPlatformAccessories(
+          PackageInfo.identifier,
+          PackageInfo.platformName,
+          this.cachedAccessories,
+        )
+
+        this.cachedAccessories = []
+      }
+
+      this.loadRemoteAccessories().catch(err => {
+        const msg = err instanceof Error ? err.message : 'unknown error'
+        this.log.info(`Could not load remote accessories: ${msg}`)
+      })
+    })
+  }
+
+  configureAccessory(accessory: PlatformAccessory) {
+    this.log.info(
+      `Found cached accessory "${accessory.displayName}" (${accessory.UUID})`,
+    )
+    this.cachedAccessories.push(accessory)
+  }
+
+  private async loadRemoteAccessories() {
+    this.log.info('Loading remote accessories...')
 
     const acctMgr = new AccountManager(this.api.user.storagePath())
     const accounts = await acctMgr.getAllAccounts()
-    const firstAcct = Object.keys(accounts)[0]
-    if (!firstAcct) {
+    const accountIds = Object.keys(accounts)
+
+    if (accountIds.length < 1) {
       throw new Error(
         'You are not logged into any accounts. Check the README to learn how to set up the plugin.',
       )
     }
 
-    // TODO #32: Use all accounts, not just first
-    const logiService = new LogiService(firstAcct, this.api, this.log)
+    await Promise.all(
+      accountIds.map(async accountId => {
+        const logiService = new LogiService(accountId, this.api, this.log)
 
-    const accessories = this.config.accessories.map(
-      accessory => new Camera(this.api, this.log, accessory, logiService),
+        const rawAccessories = await logiService.getAllAccessories()
+
+        rawAccessories.forEach(a => {
+          const c = new Camera(
+            a.accessoryId,
+            a.name,
+            this.config,
+            this.api,
+            this.log,
+            logiService,
+          )
+
+          if (this.accessories[c.uuid]) {
+            return
+          }
+
+          this.accessories[c.uuid] = c
+        })
+      }),
     )
 
-    callback(accessories)
+    this.api.registerPlatformAccessories(
+      PackageInfo.identifier,
+      PackageInfo.platformName,
+      Object.values(this.accessories).map(a => a.accessory),
+    )
+
+    this.log.info('Loaded remote accessories successfully')
   }
 }

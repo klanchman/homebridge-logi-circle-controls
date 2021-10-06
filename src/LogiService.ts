@@ -15,12 +15,15 @@ export interface AccessoryConfiguration {
 }
 
 export interface AccessoryResponse {
+  accessoryId: string
+  name: string
   configuration: AccessoryConfiguration
 }
 
 interface PendingRequests {
   ensureAuthenticated?: Promise<JWT>
   getAccessory?: Promise<AccessoryResponse>
+  getAllAccessories?: Promise<AccessoryResponse[]>
 }
 
 export class LogiService {
@@ -86,6 +89,19 @@ export class LogiService {
         ],
       },
     })
+  }
+
+  /**
+   * Gets all accessories for this account
+   *
+   * @returns a Promise that resolves to a list of accessory info
+   */
+  async getAllAccessories(): Promise<AccessoryResponse[]> {
+    await this.doPrechecks()
+
+    return this.joinRequest('getAllAccessories', () =>
+      this.client.get('accessories').json<AccessoryResponse[]>(),
+    )
   }
 
   /**

@@ -8,9 +8,8 @@ export interface SwitchConfig {
 }
 
 export class BaseSwitch {
-  switchService: Service
-
-  private subtype: string
+  readonly switchService: Service
+  readonly subtype: string
 
   constructor(
     protected readonly api: API,
