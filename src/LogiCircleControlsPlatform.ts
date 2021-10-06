@@ -64,27 +64,30 @@ export class LogiCircleControlsPlatform implements DynamicPlatformPlugin {
       )
     }
 
-    // TODO #32: Use all accounts, not just first
-    const logiService = new LogiService(accountIds[0], this.api, this.log)
+    await Promise.all(
+      accountIds.map(async accountId => {
+        const logiService = new LogiService(accountId, this.api, this.log)
 
-    const rawAccessories = await logiService.getAllAccessories()
+        const rawAccessories = await logiService.getAllAccessories()
 
-    rawAccessories.forEach(a => {
-      const c = new Camera(
-        a.accessoryId,
-        a.name,
-        this.config,
-        this.api,
-        this.log,
-        logiService,
-      )
+        rawAccessories.forEach(a => {
+          const c = new Camera(
+            a.accessoryId,
+            a.name,
+            this.config,
+            this.api,
+            this.log,
+            logiService,
+          )
 
-      if (this.accessories[c.uuid]) {
-        return
-      }
+          if (this.accessories[c.uuid]) {
+            return
+          }
 
-      this.accessories[c.uuid] = c
-    })
+          this.accessories[c.uuid] = c
+        })
+      }),
+    )
 
     this.api.registerPlatformAccessories(
       PackageInfo.identifier,
