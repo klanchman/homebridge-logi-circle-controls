@@ -16,6 +16,8 @@ export class LogiCircleControlsPlatform implements DynamicPlatformPlugin {
   private accessories: { [uuid: string]: Camera } = {}
   private config!: Config
 
+  private cachedAccessories: PlatformAccessory[] = []
+
   constructor(
     private readonly log: Logging,
     private readonly rawConfig: PlatformConfig,
@@ -29,6 +31,23 @@ export class LogiCircleControlsPlatform implements DynamicPlatformPlugin {
     }
 
     this.api.on('didFinishLaunching', () => {
+      if (this.cachedAccessories.length) {
+        // TODO: Use the accessories that were cached?
+        // Things seem to work fine if I don't, and it makes it so I don't have to
+        // write as much code. Not sure that there's really a downside...
+        this.log.info(
+          `Resetting cached accessories (${this.cachedAccessories.length})`,
+        )
+
+        this.api.unregisterPlatformAccessories(
+          PackageInfo.identifier,
+          PackageInfo.platformName,
+          this.cachedAccessories,
+        )
+
+        this.cachedAccessories = []
+      }
+
       this.loadRemoteAccessories().catch(err => {
         const msg = err instanceof Error ? err.message : 'unknown error'
         this.log.info(`Could not load remote accessories: ${msg}`)
@@ -38,17 +57,9 @@ export class LogiCircleControlsPlatform implements DynamicPlatformPlugin {
 
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info(
-      `Resetting cached accessory "${accessory.displayName}" (${accessory.UUID})`,
+      `Found cached accessory "${accessory.displayName}" (${accessory.UUID})`,
     )
-
-    // FIXME?: Actually use the accessory that was cached?
-    // Things seem to work fine if I don't, and it makes it so I don't have to
-    // write as much code. Not sure that there's really a downside...
-    this.api.unregisterPlatformAccessories(
-      PackageInfo.identifier,
-      PackageInfo.platformName,
-      [accessory],
-    )
+    this.cachedAccessories.push(accessory)
   }
 
   private async loadRemoteAccessories() {
