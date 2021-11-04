@@ -1,0 +1,42 @@
+root: true
+parser: '@typescript-eslint/parser'
+plugins:
+  - import
+  - '@typescript-eslint'
+parserOptions:
+  tsconfigRootDir: '.'
+  project:
+    - ./tsconfig.json
+
+extends:
+  - eslint:recommended
+  - plugin:@typescript-eslint/recommended
+  - plugin:@typescript-eslint/recommended-requiring-type-checking
+  - plugin:import/typescript
+  - prettier
+
+rules:
+  # Base ESLint Rules
+  ## Disable
+  no-duplicate-imports: 0
+  no-shadow: 0
+  ## Enable
+  sort-imports:
+    - warn
+    - ignoreDeclarationSort: true
+
+  # TypeScript Plugin Rules
+  ## Disable
+  '@typescript-eslint/explicit-module-boundary-types': off
+  ## Enable
+  '@typescript-eslint/no-duplicate-imports': error
+  '@typescript-eslint/no-shadow':
+    - warn
+    - ignoreTypeValueShadow: true
+
+  # import Plugin Rules
+  import/order:
+    - warn
+    - newlines-between: always
+      alphabetize:
+        order: asc
