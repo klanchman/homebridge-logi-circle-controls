@@ -4,8 +4,8 @@ This is a Homebridge plugin that exposes extended controls for Logitech Circle c
 
 ## Install
 
-```sh-session
-$ npm i -g homebridge-logi-circle-controls
+```
+npm i -g homebridge-logi-circle-controls
 ```
 
 ### Minimum Requirements
@@ -17,8 +17,8 @@ $ npm i -g homebridge-logi-circle-controls
 
 Run the included command line tool to log into your Logitech account:
 
-```sh-session
-$ homebridge-logi-circle-controls login
+```
+homebridge-logi-circle-controls login
 ```
 
 If your Homebridge configuration path is non-standard, use the `-d` option to specify where it is.

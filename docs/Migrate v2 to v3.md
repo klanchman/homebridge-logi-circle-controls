@@ -12,8 +12,8 @@ The plugin now includes a command line tool to log in to your Logitech account.
 
 Run the following command to log in, following the prompts:
 
-```sh-session
-$ homebridge-logi-circle-controls login
+```
+homebridge-logi-circle-controls login
 ```
 
 If your Homebridge configuration path is non-standard, use the `-d` option to specify where it is.
