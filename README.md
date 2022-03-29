@@ -21,13 +21,23 @@ Run the included command line tool to log into your Logitech account:
 homebridge-logi-circle-controls login
 ```
 
-If your Homebridge configuration path is non-standard, use the `-d` option to specify where it is.
-
 Use the `-h` option to get additional help.
+
+Refer to the ["How to Log In" wiki page](https://github.com/klanchman/homebridge-logi-circle-controls/wiki/How-to-Log-In) for more detailed information about how to complete the process.
+
+### Homebridge Configuration Path
+
+The tool expects that your Homebridge `config.json` is located in `~/.homebridge`.
+
+If this is not the case (e.g. Synology, Docker, etc.), use the `-d` option to specify the directory where your `config.json` is located:
+
+```
+homebridge-logi-circle-controls login -d /path/to/homebridge/config/dir
+```
 
 ## Configure
 
-In your Homebridge config.json file, add a new entry in `platforms` that looks like this:
+In your Homebridge `config.json` file, add a new entry in `platforms` that looks like this:
 
 ```jsonc
 {
