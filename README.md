@@ -2,6 +2,8 @@
 
 This is a Homebridge plugin that exposes extended controls for Logitech Circle cameras, such as toggles for privacy mode, camera on/off, and LED on/off.
 
+This plugin only works with older cameras using Logitech's web service, not newer cameras based on HomeKit Secure Video.
+
 ## Install
 
 ```
