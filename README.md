@@ -4,6 +4,12 @@ This is a Homebridge plugin that exposes extended controls for Logitech Circle c
 
 This plugin only works with older cameras using Logitech's web service, not newer cameras based on HomeKit Secure Video.
 
+## ⚠️ Project in Maintenance Mode ⚠️
+
+**This project is in maintenance mode and will only receive bug fixes (if I can even do that). No new features are planned.**
+
+My Logi Circle stopped working so I'm not able to use this plugin anymore, which makes new feature development very difficult! 😅
+
 ## Install
 
 ```
